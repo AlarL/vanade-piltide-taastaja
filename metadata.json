@@ -1,6 +1,8 @@
 {
-  "name": "Vanade Fotode Taastaja",
-  "description": "Vanade fotode taastaja. Ärata vanad pildid ellu.",
+  "name": "Taasta vana pilt",
+  "description": "Taasta vanad pere- ja arhiivifotod tehisintellektiga. Eemalda kriimustused ja plekid, teravusta udused näod ning värvi mustvalged pildid loomulike toonidega otse veebis (taastavanapilt.ee).",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
+
+

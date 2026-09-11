@@ -12,6 +12,9 @@ import {
   ArrowRight,
   Check,
   Palette,
+  Leaf,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 import { RestorationFilterId } from "../types";
 import { RESTORATION_FILTERS } from "../filters";
@@ -24,8 +27,14 @@ interface PhotoUploaderProps {
     userNote?: string
   ) => void;
   isLoading: boolean;
-  onOpenPromptModal?: () => void;
-  isPromptCustomized?: boolean;
+  quota?: {
+    photosRemaining: number;
+    photosMax: number;
+    videosRemaining: number;
+    videosMax: number;
+    photoResetHours?: number;
+    videoResetHours?: number;
+  } | null;
 }
 
 const MAX_NOTE_LENGTH = 120;
@@ -41,8 +50,7 @@ const QUICK_SUGGESTIONS = [
 export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   onImageSelected,
   isLoading,
-  onOpenPromptModal,
-  isPromptCustomized,
+  quota,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -191,7 +199,23 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
       {/* FLOW STEP 1: If no image uploaded yet */}
       {!uploadedImage && (
-        <div className="space-y-4">
+        <div className="space-y-3">
+          {/* Subtle environmental & responsibility reminder */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-amber-50/70 border border-amber-200/60 text-[11px] text-amber-950">
+            <div className="flex items-center gap-1.5">
+              <Leaf className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+              <span>
+                <strong>Kasuta ainult siis, kui sul on seda tõesti vaja.</strong> See kulutab energiat ja ressursse.
+              </span>
+            </div>
+            {quota && (
+              <div className="inline-flex items-center gap-1 text-[10px] text-amber-900 font-mono">
+                <Zap className="w-3 h-3 text-amber-600" />
+                <span>Limiit: {quota.photosRemaining}/{quota.photosMax} fotot</span>
+              </div>
+            )}
+          </div>
+
           <div
             id="drop-zone"
             onDrop={handleDrop}
@@ -401,6 +425,20 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
             </div>
           </div>
 
+          {/* Compact responsibility and resource reminder right before the generate button */}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-[11px] text-amber-950">
+            <div className="flex items-center gap-2">
+              <Leaf className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+              <span>
+                <strong>Kasuta ainult siis, kui sul on seda tõesti vaja.</strong> See kulutab energiat ja ressursse. Ole vastutustundlik.
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-amber-900/80">
+              <ShieldCheck className="w-3 h-3 text-teal-700 shrink-0" />
+              <span>Mälupõhine • Faile ei salvestata</span>
+            </div>
+          </div>
+
           {/* Action Button: Start Restoration */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
             <button
@@ -411,42 +449,23 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
               Tühista
             </button>
 
-            <button
-              type="button"
-              onClick={handleStartRestoration}
-              disabled={isLoading}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white transition-all shadow-xs"
-            >
-              <Sparkles className="w-4 h-4 fill-current text-teal-200" />
-              <span>Alusta foto taastamist</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            {quota && quota.photosRemaining <= 0 ? (
+              <div className="w-full sm:w-auto text-xs text-amber-900 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl text-center">
+                Päevane limiit ({quota.photosMax || 5} fotot) on täis. Uus limiit vabaneb umbes {quota.photoResetHours || 24} h pärast.
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleStartRestoration}
+                disabled={isLoading}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white transition-all shadow-xs"
+              >
+                <Sparkles className="w-4 h-4 fill-current text-teal-200" />
+                <span>Alusta foto taastamist</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-        </div>
-      )}
-
-      {/* AI System Prompt Toolbar for testing */}
-      {onOpenPromptModal && (
-        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-stone-100/70 border border-stone-200 text-xs">
-          <div className="flex items-center gap-2 text-stone-600">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-teal-700 shrink-0" />
-            <span>
-              <span className="font-medium text-stone-700">AI Süsteemijuhis:</span>{" "}
-              {isPromptCustomized ? (
-                <span className="text-teal-900 font-medium">Kohandatud</span>
-              ) : (
-                <span className="text-stone-500">Standardne</span>
-              )}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={onOpenPromptModal}
-            className="font-medium text-teal-800 hover:text-teal-950 underline underline-offset-2 hover:no-underline px-2 py-1 rounded transition-colors"
-          >
-            Muuda või testi prompti →
-          </button>
         </div>
       )}
     </div>

@@ -18,22 +18,107 @@ async function startServer() {
 
   // Health check endpoint
   app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", service: "Vanade fotode taastaja" });
+    res.json({ status: "ok", service: "Taasta vana pilt (taastavanapilt.ee)" });
   });
 
-  // Helper for technical API error parsing and developer diagnostics
+  // Rate limiting system: Max 5 photos and 1 video per 24 hours per client
+  interface UsageRecord {
+    photos: number[];
+    videos: number[];
+  }
+  const usageStore = new Map<string, UsageRecord>();
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const MAX_PHOTOS_PER_DAY = 5;
+  const MAX_VIDEOS_PER_DAY = 1;
+
+  function getClientKey(req: express.Request): string {
+    const customId = req.headers["x-client-id"];
+    if (typeof customId === "string" && customId.trim().length > 3) {
+      return customId.trim();
+    }
+    const forwarded = req.headers["x-forwarded-for"];
+    if (typeof forwarded === "string" && forwarded.length > 0) {
+      return forwarded.split(",")[0].trim();
+    }
+    return req.ip || req.socket.remoteAddress || "global_anonymous";
+  }
+
+  function getRateLimitStatus(clientId: string) {
+    const now = Date.now();
+    let record = usageStore.get(clientId);
+    if (!record) {
+      record = { photos: [], videos: [] };
+      usageStore.set(clientId, record);
+    }
+
+    // Clean up timestamps older than 24h
+    record.photos = record.photos.filter((t) => now - t < ONE_DAY_MS);
+    record.videos = record.videos.filter((t) => now - t < ONE_DAY_MS);
+
+    const photosRemaining = Math.max(0, MAX_PHOTOS_PER_DAY - record.photos.length);
+    const videosRemaining = Math.max(0, MAX_VIDEOS_PER_DAY - record.videos.length);
+
+    let photoResetHours = 24;
+    if (record.photos.length > 0) {
+      photoResetHours = Math.max(1, Math.ceil((record.photos[0] + ONE_DAY_MS - now) / (60 * 60 * 1000)));
+    }
+
+    let videoResetHours = 24;
+    if (record.videos.length > 0) {
+      videoResetHours = Math.max(1, Math.ceil((record.videos[0] + ONE_DAY_MS - now) / (60 * 60 * 1000)));
+    }
+
+    return {
+      photosRemaining,
+      photosMax: MAX_PHOTOS_PER_DAY,
+      videosRemaining,
+      videosMax: MAX_VIDEOS_PER_DAY,
+      photoResetHours,
+      videoResetHours,
+    };
+  }
+
+  function consumeQuota(clientId: string, type: "photo" | "video"): boolean {
+    const status = getRateLimitStatus(clientId);
+    const record = usageStore.get(clientId)!;
+    if (type === "photo") {
+      if (status.photosRemaining <= 0) return false;
+      record.photos.push(Date.now());
+      return true;
+    } else {
+      if (status.videosRemaining <= 0) return false;
+      record.videos.push(Date.now());
+      return true;
+    }
+  }
+
+  // Rate limit status endpoint for UI display
+  app.get("/api/rate-limit-status", (req, res) => {
+    const clientId = getClientKey(req);
+    const status = getRateLimitStatus(clientId);
+    res.json(status);
+  });
+
+  // Helper for technical API error parsing and developer diagnostics (with strict API key redaction)
   function parseApiError(err: any, endpoint: string) {
     const statusCode =
       err?.status ||
       err?.statusCode ||
       (err?.response && typeof err.response.status === "number" ? err.response.status : undefined) ||
       500;
-    const rawMessage =
+    let rawMessage =
       typeof err?.message === "string"
         ? err.message
         : typeof err === "string"
         ? err
         : JSON.stringify(err);
+
+    // Redact any potential API key occurrences to ensure client safety
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey && apiKey.length > 6) {
+      rawMessage = rawMessage.split(apiKey).join("REDACTED_API_KEY");
+    }
+    rawMessage = rawMessage.replace(/key=[A-Za-z0-9_-]+/gi, "key=REDACTED");
 
     let errorCode = "API_ERROR";
     let actionableAdvice = "Palun kontrollige sisendit ja proovige uuesti.";
@@ -84,7 +169,7 @@ async function startServer() {
     };
   }
 
-  // Calculate EUR costs for developer metrics
+  // Calculate EUR costs and environmental metrics (Estonian grid ~450g CO2/kWh)
   function calculateCostEur(
     model: string,
     promptTokens: number,
@@ -92,15 +177,30 @@ async function startServer() {
     videoDurationSec: number = 5
   ) {
     const USD_TO_EUR = 0.92;
+    const ESTONIA_CO2_PER_WH = 0.45; // 450 g CO2 / kWh
+
+    let energyWh = 0;
+    let ecoComparison = "";
+
     if (model.includes("veo")) {
       const isLite = model.includes("lite") || model.includes("fast");
       const ratePerSecUsd = isLite ? 0.05 : 0.2;
       const costUsd = ratePerSecUsd * videoDurationSec;
       const costEur = costUsd * USD_TO_EUR;
+
+      energyWh = isLite ? 45 : 72;
+      ecoComparison = "Võrdub umbes 5–6 nutitelefoni täislaadimisega või 10W LED-lambi põlemisega ~6 tundi.";
+      const co2GramsEstonia = Number((energyWh * ESTONIA_CO2_PER_WH).toFixed(1));
+
       return {
         costEur: Number(costEur.toFixed(4)),
         formattedCost: `${costEur.toFixed(2)} €`,
         pricingBasis: `Veo ${isLite ? "Lite" : "Standard"}: $${ratePerSecUsd}/sek × ${videoDurationSec}s = $${costUsd.toFixed(2)} (${costEur.toFixed(2)} €)`,
+        energyWh,
+        formattedEnergy: `${Math.round(energyWh)} Wh`,
+        co2GramsEstonia,
+        formattedCo2: `${co2GramsEstonia} g CO₂`,
+        ecoComparison,
       };
     } else {
       // Gemini Flash / Image models
@@ -109,10 +209,20 @@ async function startServer() {
       const imageBaseUsd = 0.00015;
       const totalUsd = inUsd + outUsd + imageBaseUsd;
       const costEur = totalUsd * USD_TO_EUR;
+
+      energyWh = 5.8;
+      ecoComparison = "Võrdub poole nutitelefoni aku laadimisega või 10W LED-lambi põlemisega ~35 minutit.";
+      const co2GramsEstonia = Number((energyWh * ESTONIA_CO2_PER_WH).toFixed(1));
+
       return {
         costEur: Number(costEur.toFixed(6)),
         formattedCost: costEur >= 0.01 ? `${costEur.toFixed(2)} €` : `${costEur.toFixed(4)} €`,
         pricingBasis: `Gemini Flash: sisend $0.075/1M, väljund $0.30/1M tokenit (1 USD = ${USD_TO_EUR} EUR)`,
+        energyWh,
+        formattedEnergy: `${energyWh.toFixed(1)} Wh`,
+        co2GramsEstonia,
+        formattedCo2: `${co2GramsEstonia} g CO₂`,
+        ecoComparison,
       };
     }
   }
@@ -122,6 +232,26 @@ async function startServer() {
     const startTime = Date.now();
     try {
       const { imageBase64, mimeType, customPrompt, aspectRatio, filterId, userNote } = req.body;
+
+      // Rate limit check: max 5 photos per 24h
+      const clientId = getClientKey(req);
+      const limitStatus = getRateLimitStatus(clientId);
+      if (limitStatus.photosRemaining <= 0) {
+        res.status(429).json({
+          error: `Päevane limiit täis: Iga kasutaja saab tasuta teha kuni 5 fotot ööpäevas, et säästa elektrit ja serverikulusid. Sinu limiit vabaneb umbes ${limitStatus.photoResetHours} tunni pärast.`,
+          isRateLimit: true,
+          limitType: "photo",
+          resetHours: limitStatus.photoResetHours,
+          errorDetails: {
+            statusCode: 429,
+            errorCode: "DAILY_LIMIT_EXCEEDED",
+            rawMessage: "Kasutaja 24-tunnine limiit (5 fotot) on ammendatud.",
+            actionableAdvice: "Oodake limiidi vabanemist või tulge tagasi homme.",
+            endpoint: "/api/restore-photo",
+          },
+        });
+        return;
+      }
 
       if (!imageBase64) {
         res.status(400).json({
@@ -288,6 +418,9 @@ async function startServer() {
 
       const pricing = calculateCostEur(usedModel, promptTokens, candidateTokens);
 
+      // Record successful usage
+      consumeQuota(clientId, "photo");
+
       const devMetrics = {
         timestamp: new Date().toISOString(),
         formattedTime: new Date().toLocaleTimeString("et-EE", {
@@ -305,6 +438,11 @@ async function startServer() {
         totalCostEur: pricing.costEur,
         formattedCost: pricing.formattedCost,
         pricingBasis: pricing.pricingBasis,
+        energyWh: pricing.energyWh,
+        formattedEnergy: pricing.formattedEnergy,
+        co2GramsEstonia: pricing.co2GramsEstonia,
+        formattedCo2: pricing.formattedCo2,
+        ecoComparison: pricing.ecoComparison,
       };
 
       res.json({
@@ -323,7 +461,7 @@ async function startServer() {
       res.status(errorDetails.statusCode >= 400 && errorDetails.statusCode < 600 ? errorDetails.statusCode : 500).json({
         error:
           errorDetails.errorCode === "RESOURCE_EXHAUSTED"
-            ? "Google Gemini pilditöötluse mudelid nõuavad arveldusega (Pay-as-you-go) API võtit. Tasuta paketis on limiit 0."
+            ? "Pilditöötluse tehisintellekt nõuab arveldusega (Pay-as-you-go) API võtit. Tasuta paketis on limiit 0."
             : errorDetails.rawMessage || "Viga foto taastamisel. Palun kontrollige pilti ja proovige uuesti.",
         errorDetails,
       });
@@ -442,6 +580,27 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
     const startTime = Date.now();
     try {
       const { imageBase64, mimeType, prompt, apiPrompt, aspectRatio } = req.body;
+
+      // Rate limit check: max 1 video per 24h
+      const clientId = getClientKey(req);
+      const limitStatus = getRateLimitStatus(clientId);
+      if (limitStatus.videosRemaining <= 0) {
+        res.status(429).json({
+          error: `Päevane limiit täis: Iga kasutaja saab teha kuni 1 video ööpäevas, kuna video genereerimine nõuab erakordselt suurt GPU arvutusvõimsust ja elektrit. Sinu limiit vabaneb umbes ${limitStatus.videoResetHours} tunni pärast.`,
+          isRateLimit: true,
+          limitType: "video",
+          resetHours: limitStatus.videoResetHours,
+          errorDetails: {
+            statusCode: 429,
+            errorCode: "DAILY_VIDEO_LIMIT_EXCEEDED",
+            rawMessage: "Kasutaja 24-tunnine videolimiit (1 video) on ammendatud.",
+            actionableAdvice: "Oodake limiidi vabanemist. Video genereerimine tarbib eriti palju energiat.",
+            endpoint: "/api/generate-video",
+          },
+        });
+        return;
+      }
+
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey) {
@@ -542,6 +701,9 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
       const approxPromptTokens = Math.round(videoPrompt.length / 4) + 258;
       const pricing = calculateCostEur(usedModel, approxPromptTokens, 0, 5);
 
+      // Record successful video quota consumption
+      consumeQuota(clientId, "video");
+
       const devMetrics = {
         timestamp: new Date().toISOString(),
         formattedTime: new Date().toLocaleTimeString("et-EE", {
@@ -560,6 +722,11 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
         formattedCost: pricing.formattedCost,
         pricingBasis: pricing.pricingBasis,
         operationName: operation.name,
+        energyWh: pricing.energyWh,
+        formattedEnergy: pricing.formattedEnergy,
+        co2GramsEstonia: pricing.co2GramsEstonia,
+        formattedCo2: pricing.formattedCo2,
+        ecoComparison: pricing.ecoComparison,
       };
 
       res.json({
@@ -856,6 +1023,9 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
       });
     }
   });
+
+  // Serve static assets from public folder explicitly (images, og-image, favicons)
+  app.use(express.static(path.join(process.cwd(), "public")));
 
   // Vite development vs production handling
   if (process.env.NODE_ENV !== "production") {

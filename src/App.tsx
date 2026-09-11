@@ -1,13 +1,36 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Header } from "./components/Header";
+import { HeroDemoSlider } from "./components/HeroDemoSlider";
 import { PhotoUploader } from "./components/PhotoUploader";
 import { RestoringState } from "./components/RestoringState";
 import { PhotoCompareSlider } from "./components/PhotoCompareSlider";
-import { PromptEditorModal } from "./components/PromptEditorModal";
-import { DEFAULT_RESTORATION_PROMPT } from "./restorationPrompt";
+import { AlternativeServicesBanner } from "./components/AlternativeServicesBanner";
+import { LegalFooter } from "./components/LegalFooter";
 import { RestoredPhotoResult, RestorationFilterId, ApiErrorDetails } from "./types";
-import { AlertCircle, RefreshCw, KeyRound, ExternalLink } from "lucide-react";
+import { AlertCircle, RefreshCw, KeyRound, ShieldAlert } from "lucide-react";
 import { DevMetricsCard } from "./components/DevMetricsCard";
+
+interface QuotaStatus {
+  photosRemaining: number;
+  photosMax: number;
+  videosRemaining: number;
+  videosMax: number;
+  photoResetHours: number;
+  videoResetHours: number;
+}
+
+function getOrCreateClientId(): string {
+  try {
+    let id = localStorage.getItem("vf_client_id");
+    if (!id) {
+      id = "client_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+      localStorage.setItem("vf_client_id", id);
+    }
+    return id;
+  } catch {
+    return "client_fallback_" + Date.now();
+  }
+}
 
 export default function App() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -22,20 +45,32 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [apiErrorDetails, setApiErrorDetails] = useState<ApiErrorDetails | null>(null);
   const [isQuotaError, setIsQuotaError] = useState<boolean>(false);
+  const [isRateLimitError, setIsRateLimitError] = useState<boolean>(false);
 
   const [activeUserNote, setActiveUserNote] = useState<string | undefined>(undefined);
   const [activeFilterId, setActiveFilterId] = useState<RestorationFilterId>("modern_hd");
-
-  // System Prompt customization state for live testing
-  const [customPrompt, setCustomPrompt] = useState<string>(
-    DEFAULT_RESTORATION_PROMPT
-  );
-  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-
-  const isPromptCustomized =
-    customPrompt.trim() !== DEFAULT_RESTORATION_PROMPT.trim();
+  const [quota, setQuota] = useState<QuotaStatus | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const fetchQuota = useCallback(async () => {
+    try {
+      const clientId = getOrCreateClientId();
+      const res = await fetch("/api/rate-limit-status", {
+        headers: { "x-client-id": clientId },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setQuota(data);
+      }
+    } catch (e) {
+      console.warn("Could not fetch rate limit status:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchQuota();
+  }, [fetchQuota]);
 
   const handleImageSelected = async (
     base64: string,
@@ -55,12 +90,12 @@ export default function App() {
     setError(null);
     setApiErrorDetails(null);
     setIsQuotaError(false);
+    setIsRateLimitError(false);
     setIsLoading(true);
 
     const startTimestamp = Date.now();
     setStartTime(startTimestamp);
 
-    // Prepare abort controller
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -68,16 +103,17 @@ export default function App() {
     abortControllerRef.current = abortController;
 
     try {
+      const clientId = getOrCreateClientId();
       const response = await fetch("/api/restore-photo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-client-id": clientId,
         },
         body: JSON.stringify({
           imageBase64: base64,
           mimeType: chosenInfo.type,
           aspectRatio: chosenInfo.aspectRatio,
-          customPrompt: isPromptCustomized ? customPrompt : undefined,
           filterId: filterId || "modern_hd",
           userNote: userNote?.trim() || undefined,
         }),
@@ -87,8 +123,12 @@ export default function App() {
       const data = await response.json();
 
       if (!response.ok || !data.success || !data.restoredImage) {
-        if (response.status === 429 || data.isQuotaError) {
-          setIsQuotaError(true);
+        if (data.isRateLimit || response.status === 429) {
+          if (data.isRateLimit || data.errorCode === "DAILY_LIMIT_EXCEEDED") {
+            setIsRateLimitError(true);
+          } else {
+            setIsQuotaError(true);
+          }
         }
         if (data.errorDetails) {
           setApiErrorDetails(data.errorDetails);
@@ -111,6 +151,9 @@ export default function App() {
         devMetrics: data.devMetrics,
         errorDetails: data.errorDetails,
       });
+
+      // Update quota status
+      fetchQuota();
     } catch (err: any) {
       if (err.name === "AbortError") {
         console.log("Restoration cancelled by user.");
@@ -119,7 +162,6 @@ export default function App() {
       console.error("Error during restoration:", err);
 
       const isQuota =
-        err.message?.includes("429") ||
         err.message?.includes("Quota exceeded") ||
         err.message?.includes("RESOURCE_EXHAUSTED") ||
         err.message?.includes("limit: 0");
@@ -148,6 +190,7 @@ export default function App() {
     setError(null);
     setApiErrorDetails(null);
     setIsQuotaError(false);
+    setIsRateLimitError(false);
   };
 
   const handleReset = () => {
@@ -156,9 +199,11 @@ export default function App() {
     setError(null);
     setApiErrorDetails(null);
     setIsQuotaError(false);
+    setIsRateLimitError(false);
     setIsLoading(false);
     setStartTime(null);
     setActiveUserNote(undefined);
+    fetchQuota();
   };
 
   const handleRetry = () => {
@@ -169,77 +214,72 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fafaf8] text-stone-900 flex flex-col antialiased selection:bg-teal-100 selection:text-teal-900">
-      {/* Flat Nordic Header */}
-      <Header
-        onOpenPromptModal={() => setIsPromptModalOpen(true)}
-        isPromptCustomized={isPromptCustomized}
-      />
+      {/* 1. Flat Nordic Header */}
+      <Header />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col justify-center">
-        {/* Error notification banner with flat styling */}
+      {/* 2. Main Content Area */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col justify-center">
+        {/* Error notification banner */}
         {error && (
           <div
             id="error-banner"
-            className="max-w-2xl mx-auto mb-8 w-full p-5 rounded-xl bg-white border border-red-200 text-stone-800 text-xs space-y-3 shadow-2xs"
+            className="max-w-2xl mx-auto mb-6 w-full p-5 rounded-2xl bg-white border border-stone-200 text-stone-800 text-xs space-y-3 shadow-2xs"
           >
             <div className="flex items-start gap-3">
-              <div className="p-1.5 rounded-lg bg-red-100 text-red-700 shrink-0 mt-0.5">
-                <AlertCircle className="w-4 h-4" />
+              <div className="p-2 rounded-xl bg-amber-100 text-amber-900 shrink-0 mt-0.5">
+                {isRateLimitError ? (
+                  <ShieldAlert className="w-4 h-4 text-amber-800" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-amber-800" />
+                )}
               </div>
               <div className="flex-1 space-y-1.5">
-                <p className="font-semibold text-red-950 text-sm">
-                  {isQuotaError
-                    ? "Google Gemini API kvoot: Arveldusega võti on vajalik"
-                    : "Viga foto taastamisel"}
+                <p className="font-semibold text-stone-900 text-sm">
+                  {isRateLimitError
+                    ? "Päevane kasutuslimiit on saavutatud"
+                    : isQuotaError
+                    ? "Google Cloud API kvoot: Arveldusega võti on vajalik"
+                    : "Päringut ei saanud lõpule viia"}
                 </p>
                 <p className="leading-relaxed text-stone-700">{error}</p>
 
                 {isQuotaError && (
-                  <div className="mt-3 p-3.5 rounded-lg bg-stone-50 border border-stone-200 text-stone-800 space-y-2">
+                  <div className="mt-3 p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 space-y-2">
                     <div className="flex items-center gap-2 font-semibold text-xs text-stone-900">
                       <KeyRound className="w-3.5 h-3.5 text-teal-700" />
-                      <span>Miks see viga tekib ja kuidas seda lahendada?</span>
+                      <span>Kuidas API seadistada?</span>
                     </div>
                     <p className="text-[11px] leading-relaxed text-stone-600">
-                      Google&apos;i reeglite kohaselt on pilditöötluse ja fotode taastamise
-                      mudelitel (nt <code>gemini-3.1-flash-image</code>) tasuta proovipaketis
-                      päringulimiit <strong>0 (limit: 0)</strong>. Nende mudelite kasutamiseks on vaja
-                      projekti, millel on aktiveeritud Google Cloud Billing (Pay-as-you-go).
+                      Pilditöötluse tehisintellektil on tasuta proovipaketis päringulimiit <strong>0</strong>. Kasutamiseks on vaja arvelduskontoga (Pay-as-you-go) API võtit.
                     </p>
-                    <div className="text-[11px] font-medium text-stone-800 pt-1">
-                      Kuidas lisada:
-                      <ol className="list-decimal list-inside mt-1 space-y-0.5 text-stone-600">
-                        <li>Avage vasakult AI Studio menüüst <strong>Settings &gt; Secrets</strong></li>
-                        <li>Valige või siduge Google Cloudi projekt, millel on arvelduskonto aktiveeritud</li>
-                      </ol>
-                    </div>
                   </div>
                 )}
 
-                {/* Developer diagnostics card for photo restoration error */}
+                {/* Diagnostics and pricing breakdown */}
                 {apiErrorDetails && (
                   <div className="mt-2">
                     <DevMetricsCard
                       errorDetails={apiErrorDetails}
-                      title="Arendaja veateade ja diagnostika"
+                      title="Tehniline diagnostika ja veateade"
                     />
                   </div>
                 )}
 
                 <div className="pt-2 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleRetry}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-lg font-medium transition-colors"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Proovi uuesti</span>
-                  </button>
+                  {!isRateLimitError && (
+                    <button
+                      type="button"
+                      onClick={handleRetry}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-medium transition-colors text-xs"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Proovi uuesti</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="text-stone-600 hover:text-stone-900 underline underline-offset-2"
+                    className="text-stone-600 hover:text-stone-900 text-xs underline underline-offset-2"
                   >
                     Vali teine foto
                   </button>
@@ -249,14 +289,19 @@ export default function App() {
           </div>
         )}
 
-        {/* View 1: Upload state */}
+        {/* View 1: Upload state (with Hero Demo Slider directly in header area) */}
         {!isLoading && !result && (
-          <PhotoUploader
-            onImageSelected={handleImageSelected}
-            isLoading={isLoading}
-            onOpenPromptModal={() => setIsPromptModalOpen(true)}
-            isPromptCustomized={isPromptCustomized}
-          />
+          <div className="space-y-6">
+            {/* Interactive example photo slider in header area without percentage display */}
+            <HeroDemoSlider />
+
+            {/* Photo upload and customization flow */}
+            <PhotoUploader
+              onImageSelected={handleImageSelected}
+              isLoading={isLoading}
+              quota={quota}
+            />
+          </div>
         )}
 
         {/* View 2: Restoring & Colorizing state with live timer */}
@@ -274,26 +319,11 @@ export default function App() {
         )}
       </main>
 
-      {/* Modal for viewing & testing the system prompt */}
-      <PromptEditorModal
-        isOpen={isPromptModalOpen}
-        onClose={() => setIsPromptModalOpen(false)}
-        currentPrompt={customPrompt}
-        onSavePrompt={(p) => setCustomPrompt(p)}
-        onResetPrompt={() => setCustomPrompt(DEFAULT_RESTORATION_PROMPT)}
-      />
+      {/* 4. Cross-promotional bottom banner (Alternative AI restoration & Estonian Kahoot alternative) */}
+      <AlternativeServicesBanner />
 
-      {/* Clean Flat Nordic footer */}
-      <footer className="w-full border-t border-stone-200 bg-white py-4 text-center text-xs text-stone-500">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>
-            Vanade fotode taastaja • Ärata vanad pildid ellu
-          </span>
-          <span className="text-stone-400">
-            Mälupõhine töötlemine
-          </span>
-        </div>
-      </footer>
+      {/* 5. Legal & GDPR Footer with "Olemegi meie" and full disclaimers */}
+      <LegalFooter />
     </div>
   );
 }

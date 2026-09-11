@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Film,
   Check,
-  Share2,
   Camera,
   Layers,
   Smile,
@@ -52,7 +51,6 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState<string>("warm_smile");
   const [promptText, setPromptText] = useState<string>(VIDEO_PRESETS[0].userPrompt);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
   // Dynamic Scene-Aware Suggestions from Gemini
@@ -251,7 +249,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
       setVideoState((prev) => ({
         ...prev,
         operationName,
-        statusText: "Video genereerimine käib (Veo mudel animeerib pilti)...",
+        statusText: "Video genereerimine käib (tehisintellekt animeerib pilti)...",
         devMetrics: startData.devMetrics,
       }));
 
@@ -433,30 +431,6 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
 
     setDownloadSuccess("combo");
     setTimeout(() => setDownloadSuccess(null), 2500);
-  };
-
-  // Share / Copy Link
-  const handleShare = async () => {
-    if (navigator.share && videoState.videoUrl) {
-      try {
-        await navigator.share({
-          title: "Taastatud foto ja video",
-          text: "Vaata taastatud vana foto elustatud videot!",
-          url: window.location.href,
-        });
-        return;
-      } catch {
-        // Fallback to clipboard
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    } catch {
-      // Ignored
-    }
   };
 
   const renderIcon = (iconName: string, className: string) => {
@@ -943,7 +917,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                   {videoState.statusText || "Video loomine käib..."}
                 </p>
                 <p className="text-xs text-stone-500 max-w-md mx-auto">
-                  Google Veo tehisintellekt arvutab näoliigutusi ja valgust. Video renderdamine võtab tavaliselt umbes 30–60 sekundit.
+                  Tehisintellekt arvutab näoliigutusi ja valgust. Video renderdamine võtab tavaliselt umbes 30–60 sekundit.
                 </p>
               </div>
             </div>
@@ -974,10 +948,10 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                     <div className="space-y-1.5 flex-1">
                       <p className="font-semibold text-amber-900 text-sm">
-                        Google Veo turvakontroll (Responsible AI) piiras video genereerimist
+                        Automaatne turvakontroll (Responsible AI) piiras video genereerimist
                       </p>
                       <p className="text-[12px] text-amber-900/90 leading-relaxed">
-                        Google&apos;i AI-mudelitel on automaatsed turvareeglid, mis võivad piirata teatud isikute või alaealiste animeerimist arhiivifotodel (deepfake ja lastekaitse reeglid).
+                        Tehisintellektil on automaatsed turvareeglid, mis võivad piirata teatud isikute või alaealiste animeerimist arhiivifotodel (deepfake ja lastekaitse reeglid).
                       </p>
                       <p className="text-[12px] text-amber-900/90 leading-relaxed">
                         Soovitus: Kui fotol on teisi isikuid või elemente servades, saate üleval valida kaadri fookuse (nt <strong>Keskosa</strong>, <strong>Vasak pool</strong> või <strong>Parem pool</strong>) või proovida teist fotot.
@@ -1003,12 +977,12 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                 </div>
               )}
 
-              {/* Developer diagnostics card with error details & pricing info */}
+              {/* Resource & diagnostics card with error details & pricing info */}
               {(videoState.errorDetails || videoState.devMetrics) && (
                 <DevMetricsCard
                   metrics={videoState.devMetrics}
                   errorDetails={videoState.errorDetails}
-                  title="Arendaja info: Video veateade & diagnostika"
+                  title="Video vea- ja kuluaruanne"
                 />
               )}
             </div>
@@ -1073,8 +1047,8 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                   )}
                 </div>
 
-                {/* Download Buttons Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {/* Download Buttons Grid - 3 ephemeral download options, no persistent sharing */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {/* Option 1: MP4 Video */}
                   <button
                     type="button"
@@ -1115,33 +1089,14 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                       <p className="text-[10px] text-stone-500">Mõlemad failid korraga</p>
                     </div>
                   </button>
-
-                  {/* Option 4: Share / Link */}
-                  <button
-                    type="button"
-                    onClick={handleShare}
-                    className="flex items-center gap-2 p-3 rounded-xl bg-white hover:bg-stone-100 border border-stone-200 text-stone-800 text-xs font-medium transition-colors text-left"
-                  >
-                    {copiedLink ? (
-                      <Check className="w-4 h-4 shrink-0 text-emerald-600" />
-                    ) : (
-                      <Share2 className="w-4 h-4 shrink-0 text-stone-600" />
-                    )}
-                    <div>
-                      <p className="leading-tight font-semibold">
-                        {copiedLink ? "Link kopeeritud!" : "Jaga videot"}
-                      </p>
-                      <p className="text-[10px] text-stone-500">Kopeeri link või saada</p>
-                    </div>
-                  </button>
                 </div>
               </div>
 
-              {/* Developer metrics & token cost in euros for completed video */}
+              {/* Resource metrics & environmental impact for completed video */}
               {videoState.devMetrics && (
                 <DevMetricsCard
                   metrics={videoState.devMetrics}
-                  title="Arendaja info: Video tokenid & maksumus (Google Veo)"
+                  title="Video genereerimise ressursi- & energiaraport"
                   compact={true}
                 />
               )}

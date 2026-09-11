@@ -1,19 +1,15 @@
 import React, { useState } from "react";
 import {
-  Code,
-  Clock,
+  Leaf,
+  Zap,
   Cpu,
-  Coins,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Info,
-  AlertTriangle,
+  Timer,
   ChevronDown,
   ChevronUp,
-  Copy,
-  Check,
+  AlertCircle,
+  Info,
 } from "lucide-react";
-import { DevMetrics } from "../utils/devMetrics";
+import { DevMetrics } from "../types";
 
 interface DevMetricsCardProps {
   metrics?: DevMetrics | null;
@@ -31,251 +27,182 @@ interface DevMetricsCardProps {
 export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
   metrics,
   errorDetails,
-  title = "Arendaja info & tokenite kulu",
-  compact = false,
+  title = "Ressursi- ja energiakulu raport",
+  compact = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(!compact || Boolean(errorDetails));
-  const [copied, setCopied] = useState(false);
 
   if (!metrics && !errorDetails) return null;
 
-  const handleCopy = () => {
-    const dataToCopy = {
-      timestamp: metrics?.formattedTime || new Date().toISOString(),
-      model: metrics?.model,
-      tokens: {
-        in: metrics?.promptTokens,
-        out: metrics?.candidateTokens,
-        total: metrics?.totalTokens,
-      },
-      costEur: metrics?.formattedCost,
-      errorDetails,
-    };
-    navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // Energy & CO2 fallbacks if not yet computed
+  const energyDisplay = metrics?.formattedEnergy || (metrics?.model?.includes("veo") ? "65 Wh" : "5.8 Wh");
+  const co2Display = metrics?.formattedCo2 || (metrics?.model?.includes("veo") ? "29.3 g CO₂" : "2.6 g CO₂");
+  const comparisonText =
+    metrics?.ecoComparison ||
+    (metrics?.model?.includes("veo")
+      ? "Võrdub 5–6 nutitelefoni täislaadimisega või 10W LED-lambi põlemisega u 6 tundi."
+      : "Võrdub umbes poole nutitelefoni aku laadimisega või 10W LED-lambi põlemisega ~35 minutit.");
 
   return (
     <div
-      id="dev-metrics-card"
-      className={`rounded-xl border transition-all ${
+      id="resource-metrics-card"
+      className={`rounded-2xl border transition-all overflow-hidden ${
         errorDetails
-          ? "bg-amber-50/70 border-amber-300 text-stone-900"
-          : "bg-stone-900 text-stone-100 border-stone-800 shadow-md"
+          ? "bg-amber-50/80 border-amber-300 text-stone-900"
+          : "bg-stone-50/90 border-stone-200 text-stone-800 shadow-2xs"
       }`}
     >
-      {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-stone-800/20">
-        <div className="flex items-center gap-2">
+      {/* Header bar - soft, clear and calm */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-stone-100/70 transition-colors text-left"
+        aria-expanded={isExpanded}
+      >
+        <div className="flex items-center gap-3">
           <div
-            className={`w-6 h-6 rounded-md flex items-center justify-center ${
+            className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
               errorDetails
-                ? "bg-amber-500/20 text-amber-800"
-                : "bg-amber-400/20 text-amber-400"
+                ? "bg-amber-200 text-amber-900"
+                : "bg-teal-100 text-teal-800"
             }`}
           >
-            <Code className="w-3.5 h-3.5" />
+            {errorDetails ? (
+              <AlertCircle className="w-4 h-4 text-amber-800" />
+            ) : (
+              <Leaf className="w-4 h-4 text-teal-800" />
+            )}
           </div>
           <div>
-            <span className="text-xs font-semibold tracking-wide uppercase">
-              {title}
-            </span>
-            {metrics?.formattedTime && (
-              <span
-                className={`ml-2 text-[11px] ${
-                  errorDetails ? "text-amber-800/80" : "text-stone-400"
-                }`}
-              >
-                ({metrics.formattedTime})
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-stone-900 tracking-tight">
+                {title}
               </span>
-            )}
+            </div>
+            <p className="text-[11px] text-stone-500 font-normal">
+              Kulutatud elektrienergia ja CO₂ jalajälg
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleCopy}
-            title="Kopeeri JSON arendaja raport"
-            className={`text-[11px] px-2 py-1 rounded transition-colors flex items-center gap-1 ${
-              errorDetails
-                ? "hover:bg-amber-200/60 text-amber-900"
-                : "hover:bg-stone-800 text-stone-300"
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-3 h-3 text-emerald-500" />
-                <span>Kopeeritud!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3" />
-                <span>Kopeeri JSON</span>
-              </>
-            )}
-          </button>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className={`p-1 rounded transition-colors ${
-              errorDetails
-                ? "hover:bg-amber-200/60 text-amber-900"
-                : "hover:bg-stone-800 text-stone-300"
-            }`}
-          >
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
+        <div className="flex items-center gap-1.5 text-xs text-stone-500">
+          <span className="hidden sm:inline text-[11px]">
+            {isExpanded ? "Peida andmed" : "Vaata kulu"}
+          </span>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4 text-stone-600" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-stone-600" />
+          )}
         </div>
-      </div>
+      </button>
 
-      {/* Main Grid */}
+      {/* Expanded Details - Flowing downward naturally */}
       {isExpanded && (
-        <div className="p-4 space-y-3.5">
-          {/* Error Details Section if present */}
+        <div className="px-4 pb-4 pt-1 space-y-3.5 border-t border-stone-200/80">
+          {/* Responsibility prompt note */}
+          <div className="p-2.5 rounded-xl bg-teal-50/70 border border-teal-200/70 flex items-start gap-2 text-[11px] text-teal-950 leading-relaxed">
+            <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
+            <span>
+              <strong>Ole vastutustundlik:</strong> Tehisintellekti arvutused tipptasemel serveripargis vajavad märkimisväärset elektrienergiat ja jahutust. Kasuta ainult siis, kui sul on seda tõesti vaja.
+            </span>
+          </div>
+
+          {/* Error Message if present */}
           {errorDetails && (
-            <div className="p-3.5 rounded-lg bg-red-100/90 border border-red-300 text-red-950 space-y-2">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                <div className="flex-1 text-xs">
-                  <div className="font-semibold text-red-900 flex items-center gap-2">
-                    <span>Google API Tehniline Veateade</span>
-                    {errorDetails.statusCode && (
-                      <span className="px-1.5 py-0.5 rounded bg-red-200 text-red-800 text-[10px] font-mono font-bold">
-                        HTTP {errorDetails.statusCode}
-                      </span>
-                    )}
-                    {errorDetails.errorCode && (
-                      <span className="px-1.5 py-0.5 rounded bg-red-200 text-red-800 text-[10px] font-mono font-bold">
-                        {errorDetails.errorCode}
-                      </span>
-                    )}
-                  </div>
-                  {errorDetails.rawMessage && (
-                    <p className="mt-1 font-mono text-[11px] leading-relaxed bg-white/70 p-2 rounded border border-red-200 break-words">
-                      {errorDetails.rawMessage}
-                    </p>
-                  )}
-                  {errorDetails.actionableAdvice && (
-                    <div className="mt-2 text-[11px] text-red-900 bg-amber-50/80 p-2 rounded border border-amber-200 flex items-start gap-1.5">
-                      <Info className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
-                      <span>
-                        <strong>Soovitus lahenduseks:</strong>{" "}
-                        {errorDetails.actionableAdvice}
-                      </span>
-                    </div>
-                  )}
-                </div>
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-900 space-y-1.5">
+              <div className="font-semibold flex items-center gap-2">
+                <span>Viga päringu töötlemisel</span>
+                {errorDetails.statusCode && (
+                  <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-[10px] font-mono">
+                    Kood: {errorDetails.statusCode}
+                  </span>
+                )}
               </div>
+              {errorDetails.rawMessage && (
+                <p className="text-[11px] text-red-800/90 leading-relaxed">
+                  {errorDetails.rawMessage}
+                </p>
+              )}
+              {errorDetails.actionableAdvice && (
+                <p className="text-[11px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                  <strong>Soovitus:</strong> {errorDetails.actionableAdvice}
+                </p>
+              )}
             </div>
           )}
 
-          {/* Metric cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {/* Tokens in */}
-            <div
-              className={`p-2.5 rounded-lg ${
-                errorDetails ? "bg-white/80 border border-amber-200" : "bg-stone-800/80"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-[11px] text-stone-400">
-                <ArrowDownLeft className="w-3 h-3 text-sky-400" />
-                <span>Sisendtokenid</span>
+          {/* 3 Essential Metrics Cards (Tokens, Electricity, CO2) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {/* 1. Tokens */}
+            <div className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
+                <Cpu className="w-3.5 h-3.5 text-stone-500" />
+                <span>Tokenid</span>
               </div>
-              <div className="mt-1 font-mono font-bold text-sm">
-                {metrics?.promptTokens !== undefined
-                  ? metrics.promptTokens.toLocaleString("et-EE")
-                  : "—"}
-              </div>
-              <div className="text-[10px] text-stone-400">Prompt / Pilt</div>
-            </div>
-
-            {/* Tokens out */}
-            <div
-              className={`p-2.5 rounded-lg ${
-                errorDetails ? "bg-white/80 border border-amber-200" : "bg-stone-800/80"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-[11px] text-stone-400">
-                <ArrowUpRight className="w-3 h-3 text-emerald-400" />
-                <span>Väljundtokenid</span>
-              </div>
-              <div className="mt-1 font-mono font-bold text-sm">
-                {metrics?.candidateTokens !== undefined
-                  ? metrics.candidateTokens.toLocaleString("et-EE")
-                  : "—"}
-              </div>
-              <div className="text-[10px] text-stone-400">Vastus / Genereering</div>
-            </div>
-
-            {/* Total tokens */}
-            <div
-              className={`p-2.5 rounded-lg ${
-                errorDetails ? "bg-white/80 border border-amber-200" : "bg-stone-800/80"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-[11px] text-stone-400">
-                <Cpu className="w-3 h-3 text-amber-400" />
-                <span>Kokku tokenid</span>
-              </div>
-              <div className="mt-1 font-mono font-bold text-sm">
+              <div className="mt-1 font-mono font-bold text-sm text-stone-900">
                 {metrics?.totalTokens !== undefined
                   ? metrics.totalTokens.toLocaleString("et-EE")
                   : "—"}
               </div>
-              <div className="text-[10px] text-stone-400">
-                {metrics?.model || "Mudel"}
+              <div className="text-[10px] text-stone-400 mt-0.5">
+                AI andmemaht
               </div>
             </div>
 
-            {/* Cost in EUR */}
-            <div
-              className={`p-2.5 rounded-lg ${
-                errorDetails
-                  ? "bg-amber-100/90 border border-amber-300"
-                  : "bg-amber-950/40 border border-amber-700/50"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-[11px] text-amber-400 font-medium">
-                <Coins className="w-3 h-3" />
-                <span>Hind eurodes (€)</span>
+            {/* 2. Electric Energy (Wh) */}
+            <div className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-teal-800 font-medium">
+                <Zap className="w-3.5 h-3.5 text-teal-700" />
+                <span>Elektrikulu</span>
               </div>
-              <div className="mt-1 font-mono font-bold text-sm text-amber-400">
-                {metrics?.formattedCost || "0.00 €"}
+              <div className="mt-1 font-mono font-bold text-sm text-teal-900">
+                {energyDisplay}
               </div>
-              <div className="text-[10px] text-stone-400">
-                {metrics?.model.includes("veo") ? "Veo video" : "Gemini API"}
+              <div className="text-[10px] text-stone-400 mt-0.5">
+                Serveri energiakulu
+              </div>
+            </div>
+
+            {/* 3. CO2 Emissions in Estonia */}
+            <div className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-medium">
+                <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+                <span>CO₂ jalajälg</span>
+              </div>
+              <div className="mt-1 font-mono font-bold text-sm text-emerald-900">
+                {co2Display}
+              </div>
+              <div className="text-[10px] text-stone-400 mt-0.5">
+                Eesti võrgu keskmine
               </div>
             </div>
           </div>
 
-          {/* Details footer */}
-          <div
-            className={`pt-2 border-t text-[11px] flex flex-wrap items-center justify-between gap-2 ${
-              errorDetails
-                ? "border-amber-200 text-stone-700"
-                : "border-stone-800 text-stone-400"
-            }`}
-          >
+          {/* Environmental context comparison in Estonia */}
+          <div className="p-3 rounded-xl bg-white border border-stone-200 text-xs text-stone-700 space-y-1">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-900">
+              <Leaf className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Näide Eestis & keskkonnamõju:</span>
+            </div>
+            <p className="text-[11px] text-stone-600 leading-relaxed">
+              {comparisonText}
+            </p>
+            <p className="text-[10px] text-stone-400 pt-0.5">
+              Arvutus põhineb Eesti keskmisel võrguelektri süsinikuheitmel (~450 g CO₂ / kWh) ja tehisintellekti arvutuskoormusel.
+            </p>
+          </div>
+
+          {/* Subtle footer */}
+          <div className="pt-1 text-[11px] text-stone-400 flex items-center justify-between gap-2 border-t border-stone-200/60">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Kellaaeg: <strong>{metrics?.formattedTime || "—"}</strong>
-              </span>
               {metrics?.durationMs !== undefined && (
-                <span>
+                <span className="flex items-center gap-1">
+                  <Timer className="w-3 h-3 text-stone-400" />
                   Kestus: <strong>{(metrics.durationMs / 1000).toFixed(1)}s</strong>
                 </span>
               )}
             </div>
-            {metrics?.pricingBasis && (
-              <span className="text-[10px] opacity-80">
-                ℹ️ {metrics.pricingBasis}
-              </span>
-            )}
           </div>
         </div>
       )}

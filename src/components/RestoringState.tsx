@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, CheckCircle2, CircleDashed, X, Timer } from "lucide-react";
+import { CompanyAdCard } from "./CompanyAdCard";
 
 interface RestoringStateProps {
   originalImage: string;
@@ -140,6 +141,9 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Prominent Advertisement shown during restoration */}
+      <CompanyAdCard variant="generating" />
     </div>
   );
 };

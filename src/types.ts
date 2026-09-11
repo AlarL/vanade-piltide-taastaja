@@ -24,6 +24,11 @@ export interface DevMetrics {
   formattedCost: string;
   pricingBasis: string;
   operationName?: string;
+  energyWh?: number;
+  formattedEnergy?: string;
+  co2GramsEstonia?: number;
+  formattedCo2?: string;
+  ecoComparison?: string;
 }
 
 export interface ApiErrorDetails {

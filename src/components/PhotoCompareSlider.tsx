@@ -21,6 +21,8 @@ import {
 import { CompareMode, RestoredPhotoResult } from "../types";
 import { VideoAnimator } from "./VideoAnimator";
 import { DevMetricsCard } from "./DevMetricsCard";
+import { CompanyAdCard } from "./CompanyAdCard";
+import { DeveloperCoffeeCard } from "./DeveloperCoffeeCard";
 import { getFilterById } from "../filters";
 import { createSideBySideComparisonImage, downloadDataUrl } from "../utils/imageExport";
 
@@ -100,7 +102,7 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
     link.href = result.restoredImage;
     const name = result.fileName
       ? `taastatud-${result.fileName.replace(/\.[^/.]+$/, "")}.png`
-      : "taastatud-foto-gemini.png";
+      : "taastatud-foto.png";
     link.download = name;
     document.body.appendChild(link);
     link.click();
@@ -562,15 +564,21 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
         )}
       </div>
 
-      {/* Developer Metrics & Token Cost Breakdown for Photo Restoration */}
+      {/* Developer Coffee Appreciation Card */}
+      <DeveloperCoffeeCard />
+
+      {/* Resource & Energy Metrics Breakdown for Photo Restoration */}
       {result.devMetrics && (
         <DevMetricsCard
           metrics={result.devMetrics}
           errorDetails={result.errorDetails}
-          title="Foto taastamise tokenid & maksumus (Arendaja info)"
+          title="Foto taastamise ressursi- & energiaraport"
           compact={true}
         />
       )}
+
+      {/* Prominent Advertisement staying visible after restoration */}
+      <CompanyAdCard variant="result" />
 
       {/* Video Generation Module: Turn this restored photo into lifelike video */}
       <VideoAnimator

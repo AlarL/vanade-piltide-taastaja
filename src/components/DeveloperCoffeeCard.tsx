@@ -29,7 +29,7 @@ export const DeveloperCoffeeCard: React.FC = () => {
                 <span className="text-xs font-semibold text-amber-950 tracking-tight">
                   Tegelikult kulutas see foto taastamine ressursse
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-200/70 text-amber-900">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[13px] font-medium bg-amber-200/70 text-amber-900">
                   <Sparkles className="w-3 h-3 text-amber-800" />
                   <span>Arendaja teade</span>
                 </span>
@@ -59,3 +59,4 @@ export const DeveloperCoffeeCard: React.FC = () => {
     </>
   );
 };
+

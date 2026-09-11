@@ -172,7 +172,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
   return (
     <div
       id="photo-uploader-section"
-      className="w-full max-w-2xl mx-auto space-y-6"
+      className="photo-uploader w-full max-w-2xl mx-auto space-y-6"
     >
       {/* Hidden native input */}
       <input
@@ -185,89 +185,44 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         disabled={isLoading}
       />
 
-      {/* Header title */}
-      <div className="text-center space-y-1.5 pt-2">
-        <h2 className="text-2xl sm:text-3xl font-medium text-stone-900 tracking-tight">
-          Vanade fotode taastaja
-        </h2>
-        <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto">
+      <div className="upload-heading">
+        <p className="album-eyebrow">Vanade fotode taastaja</p>
+        <h1>{uploadedImage ? "Anna fotole uus ilme." : <>Vanad fotod.<br /><em>Uus elu.</em></>}</h1>
+        <p className="upload-description">
           {uploadedImage
-            ? "Määra taastamise stiil ja lisa soovi korral lühike värvisoov."
-            : "Ärata vanad pildid ellu – eemalda kulumine ja taasta algsed detailid."}
+            ? "Vali taastamise stiil ja lisa soovi korral värvisoov."
+            : "Ärata vanad pildid ellu – eemalda kulumisjäljed, too detailid esile ja lisa värvid."}
         </p>
       </div>
 
-      {/* FLOW STEP 1: If no image uploaded yet */}
       {!uploadedImage && (
-        <div className="space-y-3">
-          {/* Subtle environmental & responsibility reminder */}
-          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-amber-50/70 border border-amber-200/60 text-[11px] text-amber-950">
-            <div className="flex items-center gap-1.5">
-              <Leaf className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-              <span>
-                <strong>Kasuta ainult siis, kui sul on seda tõesti vaja.</strong> See kulutab energiat ja ressursse.
-              </span>
-            </div>
-            {quota && (
-              <div className="inline-flex items-center gap-1 text-[10px] text-amber-900 font-mono">
-                <Zap className="w-3 h-3 text-amber-600" />
-                <span>Limiit: {quota.photosRemaining}/{quota.photosMax} fotot</span>
-              </div>
-            )}
-          </div>
-
+        <div className="space-y-4">
           <div
             id="drop-zone"
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-            onClick={() => fileInputRef.current?.click()}
-            className={`group relative cursor-pointer rounded-2xl border-2 border-dashed p-10 sm:p-14 text-center transition-all bg-white ${
-              isDragOver
-                ? "border-teal-700 bg-teal-50/40"
-                : "border-stone-300 hover:border-teal-600 hover:bg-stone-50/60"
-            } shadow-2xs`}
+            className={`album-drop-zone ${isDragOver ? "is-dragging" : ""}`}
           >
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-800 flex items-center justify-center border border-teal-200/80 group-hover:bg-teal-100/70 transition-colors">
-                <Upload className="w-6 h-6 text-teal-800 stroke-[1.8]" />
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-base font-semibold text-stone-900 group-hover:text-teal-900 transition-colors">
-                  1. samm: Klõpsa foto valimiseks või lohista pilt siia
-                </p>
-                <p className="text-xs text-stone-500">
-                  Sobivad JPG, PNG, WebP (kuni 20 MB) • Üks foto korraga
-                </p>
-              </div>
-
-              <div className="pt-1">
-                <span className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-teal-800 hover:bg-teal-900 active:bg-teal-950 rounded-xl transition-colors shadow-2xs">
-                  <ImageIcon className="w-3.5 h-3.5" />
-                  <span>Vali foto seadmest</span>
-                </span>
-              </div>
-            </div>
-
-            {errorMsg && (
-              <div className="mt-4 p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200 text-center">
-                {errorMsg}
-              </div>
-            )}
+            <button type="button" className="album-primary" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="w-5 h-5" aria-hidden="true" />
+              Proovi tasuta – vali foto
+            </button>
+            <p className="drop-hint">või lohista foto siia</p>
+            <p className="file-hint">JPG, PNG, WebP · kuni 20 MB · üks foto korraga</p>
+            {errorMsg && <p role="alert" className="album-error">{errorMsg}</p>}
           </div>
-
-          <div className="flex items-center justify-center gap-6 text-[11px] text-stone-500 pt-1">
-            <span>✓ Mustvalged ja koltunud fotod</span>
-            <span>✓ Portreed ja tänavapildid</span>
-            <span>✓ Kriimustuste parandus</span>
+          {quota && <p className="quota-note">Tasuta fotosid alles: <strong>{quota.photosRemaining} / {quota.photosMax}</strong></p>}
+          <div className="album-notice">
+            <Leaf className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <p>Taastamine kasutab arvutusressursse. Vali foto, mida soovid päriselt taastada.</p>
           </div>
         </div>
       )}
 
       {/* FLOW STEP 2: Image is uploaded, configure style and short note */}
       {uploadedImage && (
-        <div className="bg-white rounded-2xl border border-stone-200 p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-200">
+        <div className="upload-settings bg-white rounded-xl border border-stone-200 p-5 sm:p-7 space-y-6">
           {/* Top bar: Uploaded image summary */}
           <div className="flex items-center justify-between pb-4 border-b border-stone-100 gap-3">
             <div className="flex items-center gap-3.5 min-w-0">
@@ -280,17 +235,17 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-50 text-teal-800 border border-teal-200">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[13px] font-semibold bg-teal-50 text-teal-800 border border-teal-200">
                     Foto laaditud
                   </span>
-                  <span className="text-[11px] text-stone-400 font-mono">
+                  <span className="text-[13px] text-stone-400 font-mono">
                     {uploadedImage.info.aspectRatio}
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-stone-900 truncate mt-0.5">
                   {uploadedImage.info.name}
                 </p>
-                <p className="text-[11px] text-stone-500">
+                <p className="text-[13px] text-stone-500">
                   Valmis töötlemiseks
                 </p>
               </div>
@@ -309,11 +264,11 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
           {/* Style Selector */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between px-0.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
               <label className="text-xs font-semibold text-stone-900 flex items-center gap-1.5">
                 <span>2. samm: Vali tulemuse stiil</span>
               </label>
-              <span className="text-[11px] text-stone-400">
+              <span className="text-[13px] text-stone-400">
                 Vaikimisi: Tänapäevane HD
               </span>
             </div>
@@ -325,6 +280,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                   <button
                     key={f.id}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => setSelectedFilter(f.id)}
                     className={`text-left p-3.5 rounded-xl border transition-all ${
                       isSelected
@@ -361,7 +317,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                         <Check className="w-3.5 h-3.5 text-teal-700 shrink-0" />
                       )}
                     </div>
-                    <p className="text-[11px] text-stone-500 mt-1.5 leading-snug">
+                    <p className="text-[13px] text-stone-500 mt-1.5 leading-snug">
                       {f.tagline}
                     </p>
                   </button>
@@ -372,7 +328,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
           {/* Short Note / Lisainfo */}
           <div className="space-y-2.5 pt-1">
-            <div className="flex items-center justify-between px-0.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
               <label
                 htmlFor="short-note-input"
                 className="text-xs font-semibold text-stone-900 flex items-center gap-1.5"
@@ -380,7 +336,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                 <Palette className="w-3.5 h-3.5 text-teal-700" />
                 <span>3. samm: Lisa lühike lisainfo või värvisoov (valikuline)</span>
               </label>
-              <span className="text-[11px] font-mono text-stone-400">
+              <span className="text-[13px] font-mono text-stone-400">
                 {shortNote.length} / {MAX_NOTE_LENGTH}
               </span>
             </div>
@@ -411,13 +367,13 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
             {/* Quick Inspiration Chips */}
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              <span className="text-[11px] text-stone-400 mr-1">Näited:</span>
+              <span className="text-[13px] text-stone-400 mr-1">Näited:</span>
               {QUICK_SUGGESTIONS.map((sug) => (
                 <button
                   key={sug}
                   type="button"
                   onClick={() => handleQuickSuggestionClick(sug)}
-                  className="px-2 py-0.5 rounded-md text-[11px] bg-stone-100 hover:bg-stone-200/80 text-stone-600 transition-colors border border-stone-200/60"
+                  className="px-2 py-0.5 rounded-md text-[13px] bg-stone-100 hover:bg-stone-200/80 text-stone-600 transition-colors border border-stone-200/60"
                 >
                   + {sug}
                 </button>
@@ -426,14 +382,14 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
           </div>
 
           {/* Compact responsibility and resource reminder right before the generate button */}
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-[11px] text-amber-950">
+          <div className="album-notice flex-wrap">
             <div className="flex items-center gap-2">
               <Leaf className="w-3.5 h-3.5 text-amber-800 shrink-0" />
               <span>
-                <strong>Kasuta ainult siis, kui sul on seda tõesti vaja.</strong> See kulutab energiat ja ressursse. Ole vastutustundlik.
+                Taastamine kasutab arvutusressursse. Enne alustamist kontrolli foto ja soovid üle.
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-amber-900/80">
+            <div className="flex items-center gap-2 text-[13px] text-amber-900/80">
               <ShieldCheck className="w-3 h-3 text-teal-700 shrink-0" />
               <span>Mälupõhine • Faile ei salvestata</span>
             </div>
@@ -461,7 +417,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-semibold bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white transition-all shadow-xs"
               >
                 <Sparkles className="w-4 h-4 fill-current text-teal-200" />
-                <span>Alusta foto taastamist</span>
+                <span>Taasta foto tasuta</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
@@ -471,3 +427,4 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     </div>
   );
 };
+

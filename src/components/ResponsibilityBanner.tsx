@@ -16,7 +16,7 @@ export const ResponsibilityBanner: React.FC<ResponsibilityBannerProps> = ({ quot
   return (
     <div
       id="responsibility-banner"
-      className="w-full mb-6 rounded-2xl bg-amber-50/80 border border-amber-200/90 p-3.5 sm:px-5 text-xs text-amber-950 shadow-2xs"
+      className="w-full mb-6 rounded-lg bg-stone-50 border border-stone-200 p-4 text-xs text-stone-700"
     >
       <div className="flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Core statement: user explicit requirement */}
@@ -24,23 +24,23 @@ export const ResponsibilityBanner: React.FC<ResponsibilityBannerProps> = ({ quot
           <Leaf className="w-4 h-4 text-amber-800 shrink-0" />
           <div>
             <span className="font-semibold tracking-tight">
-              Kasuta ainult siis, kui sul on seda tõesti vaja.
+              Taastamine kasutab arvutusressursse.
             </span>
             <span className="block sm:inline sm:ml-2 text-amber-900/80 font-normal">
-              See kulutab energiat ja ressursse. Ole vastutustundlik.
+              Vali foto, mida soovid päriselt taastada.
             </span>
           </div>
         </div>
 
         {/* Right side: In-memory processing & daily quota */}
-        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 text-[11px] text-amber-900/85">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 text-[13px] text-amber-900/85">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/80 border border-amber-200/80 text-stone-700">
             <ShieldCheck className="w-3.5 h-3.5 text-teal-700 shrink-0" />
             <span>Mälupõhine töötlemine • Faile ei salvestata</span>
           </div>
 
           {quota && (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/80 border border-amber-200/80 text-stone-800 font-mono text-[10px]">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/80 border border-amber-200/80 text-stone-800 font-mono text-[13px]">
               <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />
               <span>
                 Päevalimiit: <strong>{quota.photosRemaining}/{quota.photosMax}</strong> fotot •{" "}
@@ -53,3 +53,4 @@ export const ResponsibilityBanner: React.FC<ResponsibilityBannerProps> = ({ quot
     </div>
   );
 };
+

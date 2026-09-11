@@ -79,14 +79,14 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
                 {title}
               </span>
             </div>
-            <p className="text-[11px] text-stone-500 font-normal">
-              Kulutatud elektrienergia ja CO₂ jalajälg
+            <p className="text-[13px] text-stone-500 font-normal">
+              Hinnanguline energiakulu ja CO₂ jalajälg
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-stone-500">
-          <span className="hidden sm:inline text-[11px]">
+          <span className="hidden sm:inline text-[13px]">
             {isExpanded ? "Peida andmed" : "Vaata kulu"}
           </span>
           {isExpanded ? (
@@ -101,10 +101,10 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
       {isExpanded && (
         <div className="px-4 pb-4 pt-1 space-y-3.5 border-t border-stone-200/80">
           {/* Responsibility prompt note */}
-          <div className="p-2.5 rounded-xl bg-teal-50/70 border border-teal-200/70 flex items-start gap-2 text-[11px] text-teal-950 leading-relaxed">
+          <div className="p-2.5 rounded-xl bg-teal-50/70 border border-teal-200/70 flex items-start gap-2 text-[13px] text-teal-950 leading-relaxed">
             <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
             <span>
-              <strong>Ole vastutustundlik:</strong> Tehisintellekti arvutused tipptasemel serveripargis vajavad märkimisväärset elektrienergiat ja jahutust. Kasuta ainult siis, kui sul on seda tõesti vaja.
+              Tehisintellekti töötlus kasutab elektrienergiat. Allolevad keskkonnamõju näitajad on hinnangulised, mitte selle päringu mõõdetud energiakulu.
             </span>
           </div>
 
@@ -114,18 +114,18 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
               <div className="font-semibold flex items-center gap-2">
                 <span>Viga päringu töötlemisel</span>
                 {errorDetails.statusCode && (
-                  <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-[10px] font-mono">
+                  <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-800 text-[13px] font-mono">
                     Kood: {errorDetails.statusCode}
                   </span>
                 )}
               </div>
               {errorDetails.rawMessage && (
-                <p className="text-[11px] text-red-800/90 leading-relaxed">
+                <p className="text-[13px] text-red-800/90 leading-relaxed">
                   {errorDetails.rawMessage}
                 </p>
               )}
               {errorDetails.actionableAdvice && (
-                <p className="text-[11px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                <p className="text-[13px] text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200">
                   <strong>Soovitus:</strong> {errorDetails.actionableAdvice}
                 </p>
               )}
@@ -136,7 +136,7 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* 1. Tokens */}
             <div className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
+              <div className="flex items-center gap-1.5 text-[13px] text-stone-500">
                 <Cpu className="w-3.5 h-3.5 text-stone-500" />
                 <span>Tokenid</span>
               </div>
@@ -145,35 +145,35 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
                   ? metrics.totalTokens.toLocaleString("et-EE")
                   : "—"}
               </div>
-              <div className="text-[10px] text-stone-400 mt-0.5">
+              <div className="text-[13px] text-stone-400 mt-0.5">
                 AI andmemaht
               </div>
             </div>
 
             {/* 2. Electric Energy (Wh) */}
             <div className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-teal-800 font-medium">
+              <div className="flex items-center gap-1.5 text-[13px] text-teal-800 font-medium">
                 <Zap className="w-3.5 h-3.5 text-teal-700" />
                 <span>Elektrikulu</span>
               </div>
               <div className="mt-1 font-mono font-bold text-sm text-teal-900">
                 {energyDisplay}
               </div>
-              <div className="text-[10px] text-stone-400 mt-0.5">
+              <div className="text-[13px] text-stone-400 mt-0.5">
                 Serveri energiakulu
               </div>
             </div>
 
             {/* 3. CO2 Emissions in Estonia */}
             <div className="p-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-medium">
+              <div className="flex items-center gap-1.5 text-[13px] text-emerald-800 font-medium">
                 <Leaf className="w-3.5 h-3.5 text-emerald-600" />
                 <span>CO₂ jalajälg</span>
               </div>
               <div className="mt-1 font-mono font-bold text-sm text-emerald-900">
                 {co2Display}
               </div>
-              <div className="text-[10px] text-stone-400 mt-0.5">
+              <div className="text-[13px] text-stone-400 mt-0.5">
                 Eesti võrgu keskmine
               </div>
             </div>
@@ -185,16 +185,16 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
               <Leaf className="w-3.5 h-3.5 text-emerald-700" />
               <span>Näide Eestis & keskkonnamõju:</span>
             </div>
-            <p className="text-[11px] text-stone-600 leading-relaxed">
+            <p className="text-[13px] text-stone-600 leading-relaxed">
               {comparisonText}
             </p>
-            <p className="text-[10px] text-stone-400 pt-0.5">
+            <p className="text-[13px] text-stone-400 pt-0.5">
               Arvutus põhineb Eesti keskmisel võrguelektri süsinikuheitmel (~450 g CO₂ / kWh) ja tehisintellekti arvutuskoormusel.
             </p>
           </div>
 
           {/* Subtle footer */}
-          <div className="pt-1 text-[11px] text-stone-400 flex items-center justify-between gap-2 border-t border-stone-200/60">
+          <div className="pt-1 text-[13px] text-stone-400 flex items-center justify-between gap-2 border-t border-stone-200/60">
             <div className="flex items-center gap-3">
               {metrics?.durationMs !== undefined && (
                 <span className="flex items-center gap-1">
@@ -209,3 +209,4 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
     </div>
   );
 };
+

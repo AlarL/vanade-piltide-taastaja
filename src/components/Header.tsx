@@ -26,18 +26,16 @@ export const Header: React.FC = () => {
   }, [showInfo]);
 
   return (
-    <header className="w-full border-b border-stone-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-2xs">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <header className="album-header w-full border-b border-stone-200">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 h-24 flex items-center justify-between">
         {/* Logo & Name */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-teal-800 flex items-center justify-center text-white text-xs font-serif font-bold tracking-tight shadow-2xs">
-            <span>TP</span>
-          </div>
+          <img src="/camera-logo.png" alt="" className="brand-camera" width="52" height="52" />
           <div>
-            <h1 className="text-sm font-semibold tracking-tight text-stone-900 leading-none">
+            <p className="brand-name">
               Taasta vana pilt
-            </h1>
-            <p className="text-[11px] text-stone-500 font-normal mt-1">
+            </p>
+            <p className="text-[13px] text-stone-500 font-normal mt-1">
               taastavanapilt.ee
             </p>
           </div>
@@ -68,6 +66,7 @@ export const Header: React.FC = () => {
         >
           <div
             id="how-it-works-modal-content"
+            role="dialog" aria-modal="true" aria-label="Kuidas rakendus töötab?"
             className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 space-y-4 my-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
@@ -80,7 +79,7 @@ export const Header: React.FC = () => {
                   <h3 className="text-base font-semibold text-stone-900">
                     Kuidas rakendus töötab?
                   </h3>
-                  <p className="text-[11px] text-stone-500">
+                  <p className="text-[13px] text-stone-500">
                     Fotode taastamise põhimõtted ja andmekaitse
                   </p>
                 </div>
@@ -103,7 +102,7 @@ export const Header: React.FC = () => {
                 <strong className="text-stone-900">Tipptasemel fototöötlus:</strong> Tehisintellekt eemaldab kriimustused, müra ja taastab tuhmunud fotode kontrastsuse ning detailid.
               </p>
               <p>
-                <strong className="text-stone-900">Näojoonte säilitamine:</strong> Töötlus säilitab rangelt originaalsed näojooned, silmad ja loomuliku ilme ilma liigse silumiseta.
+                <strong className="text-stone-900">Näojoonte säilitamine:</strong> Töötluse eesmärk on säilitada näojooned ja loomulik ilme. Tehisintellekt võib siiski detaile muuta – võrdle tulemust alati originaaliga.
               </p>
               <p>
                 <strong className="text-stone-900">Loomulikud värvid:</strong> Mustvalgele või seepiafotole lisatakse pehmed, ajastutruud ja autentsed värvitoonid.
@@ -132,3 +131,4 @@ export const Header: React.FC = () => {
     </header>
   );
 };
+

@@ -38,13 +38,13 @@ export const LegalFooter: React.FC = () => {
               © {new Date().getFullYear()} taastavanapilt.ee
             </span>
             <span className="text-stone-300">•</span>
-            <span className="text-stone-500 text-[11px]">
+            <span className="text-stone-500 text-[13px]">
               Eksperimentaalne vanade piltide taastaja
             </span>
           </div>
 
           {/* Links to Email, Privacy & Terms modal */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px]">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[13px]">
             {/* Email Contact Link - links to taastavanapilt@gmail.com without printing the address as text */}
             <a
               id="footer-email-link"
@@ -98,6 +98,7 @@ export const LegalFooter: React.FC = () => {
         >
           <div
             id="legal-modal-content"
+            role="dialog" aria-modal="true" aria-label="Privaatsus ja kasutustingimused"
             className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 space-y-4 max-h-[90vh] overflow-y-auto my-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
@@ -111,7 +112,7 @@ export const LegalFooter: React.FC = () => {
                   <h3 className="text-sm font-semibold text-stone-900">
                     taastavanapilt.ee • Andmekaitse ja õigused
                   </h3>
-                  <p className="text-[11px] text-stone-500">
+                  <p className="text-[13px] text-stone-500">
                     Õiguslikud alused ja privaatsustingimused
                   </p>
                 </div>
@@ -223,7 +224,7 @@ export const LegalFooter: React.FC = () => {
                 onClick={() => setModalOpen(false)}
                 className="px-4 py-2 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-xl transition-colors"
               >
-                Sain aru ja nõustun
+                Sulge
               </button>
             </div>
           </div>
@@ -233,3 +234,4 @@ export const LegalFooter: React.FC = () => {
     </>
   );
 };
+

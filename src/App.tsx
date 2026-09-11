@@ -213,16 +213,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafaf8] text-stone-900 flex flex-col antialiased selection:bg-teal-100 selection:text-teal-900">
+    <div className="album-app min-h-screen bg-[#f7f4ee] text-stone-900 flex flex-col antialiased selection:bg-teal-100 selection:text-teal-900">
       {/* 1. Flat Nordic Header */}
       <Header />
 
       {/* 2. Main Content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col justify-center">
+      <main className="album-main flex-1 w-full mx-auto px-5 sm:px-8">
         {/* Error notification banner */}
         {error && (
           <div
             id="error-banner"
+            role="alert"
             className="max-w-2xl mx-auto mb-6 w-full p-5 rounded-2xl bg-white border border-stone-200 text-stone-800 text-xs space-y-3 shadow-2xs"
           >
             <div className="flex items-start gap-3">
@@ -238,31 +239,22 @@ export default function App() {
                   {isRateLimitError
                     ? "Päevane kasutuslimiit on saavutatud"
                     : isQuotaError
-                    ? "Google Cloud API kvoot: Arveldusega võti on vajalik"
+                    ? "Teenus pole praegu saadaval"
                     : "Päringut ei saanud lõpule viia"}
                 </p>
-                <p className="leading-relaxed text-stone-700">{error}</p>
+                <p className="leading-relaxed text-stone-700">{isQuotaError ? "Foto töötlemine on ajutiselt peatatud." : error}</p>
 
-                {isQuotaError && (
-                  <div className="mt-3 p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 space-y-2">
-                    <div className="flex items-center gap-2 font-semibold text-xs text-stone-900">
-                      <KeyRound className="w-3.5 h-3.5 text-teal-700" />
-                      <span>Kuidas API seadistada?</span>
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-stone-600">
-                      Pilditöötluse tehisintellektil on tasuta proovipaketis päringulimiit <strong>0</strong>. Kasutamiseks on vaja arvelduskontoga (Pay-as-you-go) API võtit.
-                    </p>
-                  </div>
-                )}
+                {isQuotaError && <p className="text-sm text-stone-600">Teenuse kasutusmaht on ajutiselt täis. Palun proovi hiljem uuesti.</p>}
 
                 {/* Diagnostics and pricing breakdown */}
                 {apiErrorDetails && (
-                  <div className="mt-2">
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-sm">Tehnilised üksikasjad</summary>
                     <DevMetricsCard
                       errorDetails={apiErrorDetails}
                       title="Tehniline diagnostika ja veateade"
                     />
-                  </div>
+                  </details>
                 )}
 
                 <div className="pt-2 flex items-center gap-3">
@@ -291,7 +283,7 @@ export default function App() {
 
         {/* View 1: Upload state (with Hero Demo Slider directly in header area) */}
         {!isLoading && !result && (
-          <div className="space-y-6">
+          <div className="album-workspace">
             {/* Interactive example photo slider in header area without percentage display */}
             <HeroDemoSlider />
 
@@ -327,3 +319,4 @@ export default function App() {
     </div>
   );
 }
+

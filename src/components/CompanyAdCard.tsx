@@ -17,12 +17,12 @@ export const CompanyAdCard: React.FC<CompanyAdCardProps> = ({
     >
       {/* Decorative subtle texture/accent badge */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100/90 border border-amber-300 text-amber-950 text-[11px] font-semibold tracking-wide">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100/90 border border-amber-300 text-amber-950 text-[13px] font-semibold tracking-wide">
           <Gamepad2 className="w-3.5 h-3.5 text-amber-800" />
           <span>Eesti oma Kahooti alternatiiv</span>
         </div>
 
-        <span className="text-[10px] font-medium text-stone-500 uppercase tracking-wider">
+        <span className="text-[13px] font-medium text-stone-500 uppercase tracking-wider">
           {variant === "generating" ? "Ootamise ajal soovitus" : "Partneri soovitus"}
         </span>
       </div>
@@ -53,7 +53,7 @@ export const CompanyAdCard: React.FC<CompanyAdCardProps> = ({
         </div>
 
         <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-stone-200/80">
-          <div className="text-[11px] text-stone-500 flex items-center gap-1">
+          <div className="text-[13px] text-stone-500 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-600" />
             <span>Hetkel täiesti tasuta – testi ja anna tagasisidet!</span>
           </div>
@@ -72,3 +72,4 @@ export const CompanyAdCard: React.FC<CompanyAdCardProps> = ({
     </div>
   );
 };
+

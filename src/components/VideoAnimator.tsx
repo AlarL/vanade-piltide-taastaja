@@ -534,7 +534,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                         <span>AI analüüsitud soovitused sellele fotole:</span>
                       </span>
                       {sceneDescription && (
-                        <span className="text-[11px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/60 font-medium">
+                        <span className="text-[13px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/60 font-medium">
                           Tuvastatud: {sceneDescription}
                         </span>
                       )}
@@ -543,7 +543,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                       type="button"
                       onClick={fetchDynamicSuggestions}
                       disabled={isLoadingSuggestions}
-                      className="inline-flex items-center gap-1 text-[11px] text-stone-500 hover:text-stone-800 transition-colors self-start sm:self-auto"
+                      className="inline-flex items-center gap-1 text-[13px] text-stone-500 hover:text-stone-800 transition-colors self-start sm:self-auto"
                       title="Uuenda AI soovitusi"
                     >
                       <RefreshCw className={`w-3 h-3 ${isLoadingSuggestions ? "animate-spin" : ""}`} />
@@ -587,7 +587,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                             )}
                           </div>
 
-                          <p className="text-[11px] text-stone-500 mt-2 leading-snug">
+                          <p className="text-[13px] text-stone-500 mt-2 leading-snug">
                             {suggestion.tagline}
                           </p>
                         </button>
@@ -626,7 +626,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                       <Sparkles className="w-3.5 h-3.5 text-teal-700" />
                       <span>{dynamicSuggestions.length > 0 ? "Üldised portree-valikud:" : "Videokiir-valikud (klõpsa sobival liigutusel):"}</span>
                     </span>
-                    <span className="text-[11px] text-stone-400">
+                    <span className="text-[13px] text-stone-400">
                       Vali etteantud või kohanda all
                     </span>
                   </div>
@@ -667,7 +667,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                             )}
                           </div>
 
-                          <p className="text-[11px] text-stone-500 mt-2 leading-snug">
+                          <p className="text-[13px] text-stone-500 mt-2 leading-snug">
                             {preset.tagline}
                           </p>
                         </button>
@@ -689,7 +689,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     Kaadri fookusala (valikuline):
                   </span>
                 </div>
-                <span className="text-[11px] text-stone-500">
+                <span className="text-[13px] text-stone-500">
                   Vali soovitud fookus enne video genereerimist
                 </span>
               </div>
@@ -713,7 +713,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <span>Terve foto</span>
                     {cropMode === "full" && <Check className="w-3.5 h-3.5 text-teal-700" />}
                   </div>
-                  <p className="text-[10px] text-stone-500 mt-1">Kogu foto (100%)</p>
+                  <p className="text-[13px] text-stone-500 mt-1">Kogu foto (100%)</p>
                 </button>
 
                 <button
@@ -733,7 +733,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <span>Keskosa</span>
                     {cropMode === "center" && <Check className="w-3.5 h-3.5 text-teal-700" />}
                   </div>
-                  <p className="text-[10px] text-stone-500 mt-1">Fookus keskel (15%–85%)</p>
+                  <p className="text-[13px] text-stone-500 mt-1">Fookus keskel (15%–85%)</p>
                 </button>
 
                 <button
@@ -753,7 +753,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <span>Vasak pool</span>
                     {cropMode === "left" && <Check className="w-3.5 h-3.5 text-teal-700" />}
                   </div>
-                  <p className="text-[10px] text-stone-500 mt-1">Vasak pool (0%–70%)</p>
+                  <p className="text-[13px] text-stone-500 mt-1">Vasak pool (0%–70%)</p>
                 </button>
 
                 <button
@@ -773,13 +773,13 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <span>Parem pool</span>
                     {cropMode === "right" && <Check className="w-3.5 h-3.5 text-teal-700" />}
                   </div>
-                  <p className="text-[10px] text-stone-500 mt-1">Parem pool (30%–100%)</p>
+                  <p className="text-[13px] text-stone-500 mt-1">Parem pool (30%–100%)</p>
                 </button>
               </div>
 
               {/* Visual Crop Frame indicator */}
               <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between text-[11px] text-stone-600">
+                <div className="flex items-center justify-between text-[13px] text-stone-600">
                   <span className="font-medium">Kaadri eelvaade:</span>
                   <span className="font-mono text-stone-500">
                     Laius: {Math.round((effectiveCropEndX - effectiveCropStartX) * 100)}%
@@ -796,7 +796,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                   {/* Dim left excluded area */}
                   {effectiveCropStartX > 0.01 && (
                     <div
-                      className="absolute top-0 bottom-0 left-0 bg-stone-950/80 backdrop-blur-[1px] border-r-2 border-stone-400 flex items-center justify-center text-[10px] text-stone-300 font-medium px-1 text-center"
+                      className="absolute top-0 bottom-0 left-0 bg-stone-950/80 backdrop-blur-[1px] border-r-2 border-stone-400 flex items-center justify-center text-[13px] text-stone-300 font-medium px-1 text-center"
                       style={{ width: `${effectiveCropStartX * 100}%` }}
                     >
                       <span className="hidden sm:inline">Välja jäetud</span>
@@ -811,7 +811,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                       width: `${(effectiveCropEndX - effectiveCropStartX) * 100}%`,
                     }}
                   >
-                    <span className="self-start px-2 py-0.5 rounded bg-teal-900/90 text-teal-100 text-[10px] font-semibold tracking-wide shadow-xs">
+                    <span className="self-start px-2 py-0.5 rounded bg-teal-900/90 text-teal-100 text-[13px] font-semibold tracking-wide shadow-xs">
                       {cropMode === "full" ? "Kogu foto" : "Valitud kaader videoks"}
                     </span>
                   </div>
@@ -819,7 +819,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                   {/* Dim right excluded area */}
                   {effectiveCropEndX < 0.99 && (
                     <div
-                      className="absolute top-0 bottom-0 right-0 bg-stone-950/80 backdrop-blur-[1px] border-l-2 border-stone-400 flex items-center justify-center text-[10px] text-stone-300 font-medium px-1 text-center"
+                      className="absolute top-0 bottom-0 right-0 bg-stone-950/80 backdrop-blur-[1px] border-l-2 border-stone-400 flex items-center justify-center text-[13px] text-stone-300 font-medium px-1 text-center"
                       style={{ width: `${(1 - effectiveCropEndX) * 100}%` }}
                     >
                       <span>Välja jäetud</span>
@@ -848,13 +848,13 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                         setPromptText("");
                         setSelectedPresetId("custom");
                       }}
-                      className="text-[11px] text-stone-500 hover:text-stone-900 underline transition-colors"
+                      className="text-[13px] text-stone-500 hover:text-stone-900 underline transition-colors"
                       title="Puhasta tekstiväli uue teksti sisestamiseks"
                     >
                       Puhasta väli
                     </button>
                   )}
-                  <span className="text-[11px] text-stone-400">
+                  <span className="text-[13px] text-stone-400">
                     {promptText.length} tähte
                   </span>
                 </div>
@@ -930,7 +930,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                 <div className="space-y-1.5 flex-1">
                   <p className="font-semibold text-red-900">Video loomine ebaõnnestus</p>
-                  <p className="text-red-700 text-[11px] leading-relaxed">{videoState.error}</p>
+                  <p className="text-red-700 text-[13px] leading-relaxed">{videoState.error}</p>
                   <button
                     type="button"
                     onClick={() => handleStartGeneration()}
@@ -1040,7 +1040,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <span>Allalaadimise valikud:</span>
                   </span>
                   {downloadSuccess && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <span className="inline-flex items-center gap-1 text-[13px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                       <Check className="w-3 h-3 text-emerald-600" />
                       <span>Fail alla laaditud!</span>
                     </span>
@@ -1058,7 +1058,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <Download className="w-4 h-4 shrink-0 text-teal-200" />
                     <div>
                       <p className="leading-tight">Laadi video alla</p>
-                      <p className="text-[10px] text-teal-200 font-normal">HD MP4 fail</p>
+                      <p className="text-[13px] text-teal-200 font-normal">HD MP4 fail</p>
                     </div>
                   </button>
 
@@ -1072,7 +1072,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <Camera className="w-4 h-4 shrink-0 text-stone-600" />
                     <div>
                       <p className="leading-tight font-semibold">Salvesta kaader</p>
-                      <p className="text-[10px] text-stone-500">Külmutatud PNG foto</p>
+                      <p className="text-[13px] text-stone-500">Külmutatud PNG foto</p>
                     </div>
                   </button>
 
@@ -1086,7 +1086,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                     <Layers className="w-4 h-4 shrink-0 text-teal-700" />
                     <div>
                       <p className="leading-tight font-semibold">Foto + Video komplekt</p>
-                      <p className="text-[10px] text-stone-500">Mõlemad failid korraga</p>
+                      <p className="text-[13px] text-stone-500">Mõlemad failid korraga</p>
                     </div>
                   </button>
                 </div>
@@ -1107,3 +1107,4 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
     </div>
   );
 };
+

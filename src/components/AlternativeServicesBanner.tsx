@@ -7,14 +7,14 @@ export const AlternativeServicesBanner: React.FC = () => {
       id="alternative-services-banner"
       className="w-full max-w-5xl mx-auto px-4 sm:px-6 my-8"
     >
-      <div className="relative rounded-2xl border-2 border-stone-300/90 bg-[#f7f5f0] shadow-sm overflow-hidden p-6 sm:p-8">
+      <div className="album-recommendations border-t border-stone-300 py-8">
         {/* Subtle decorative woven top accent strip */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-linear-to-r from-teal-800 via-amber-600 to-stone-800" />
+        
 
         <div className="space-y-6">
           {/* Header section of banner */}
           <div className="flex items-center gap-2 text-xs font-semibold text-stone-600 uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-teal-700" />
+            
             <span>Soovitused ja kasulikud alternatiivid</span>
           </div>
 
@@ -98,3 +98,4 @@ export const AlternativeServicesBanner: React.FC = () => {
     </div>
   );
 };
+

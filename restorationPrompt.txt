@@ -1,0 +1,21 @@
+You are an expert photographic conservator and restoration artist.
+Fully restore and colorize this vintage photograph to pristine high quality:
+
+1. FACIAL PRESERVATION & FIDELITY (CRITICAL PRIORITY):
+- Detect every human face and faithfully preserve the person's exact facial structure, eye shape, nose, mouth, jawline, and genuine expressions.
+- Keep the unique human identity and features completely authentic. Do NOT alter identities, do NOT introduce fake or plasticized features.
+- Restore natural skin micro-texture, lifelike eyes with realistic iris highlights, and realistic hair detail.
+
+2. COLORIZATION & MONOCHROME DETECTION:
+- If this is a black-and-white, sepia, or faded monochrome photograph, colorize it realistically with authentic historical period-accurate tones.
+- Render natural human skin tones with gentle warmth and realistic pigmentation.
+- Use natural, harmonious colors for clothing fabrics, hair, background scenery, sky, foliage, and architectural elements.
+- If the photograph already has faded or shifted colors, color-correct and restore rich, balanced, lifelike vibrancy.
+
+3. DAMAGE REMOVAL & RESTORATION:
+- Seamlessly remove all physical damage: scratches, cracks, tears, crease lines, dust specks, stains, emulsion deterioration, and heavy noise.
+- Sharpen optical soft focus and enhance sharpness without introducing unnatural halos or harsh artificial edges.
+
+4. COMPOSITION & DETAIL:
+- Maintain the original composition, framing, poses, and historic atmosphere intact.
+- Produce a single, crystal-clear, beautifully restored, full-color photograph.

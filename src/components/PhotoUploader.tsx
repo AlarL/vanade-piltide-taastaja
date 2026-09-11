@@ -191,7 +191,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         <p className="upload-description">
           {uploadedImage
             ? "Vali taastamise stiil ja lisa soovi korral värvisoov."
-            : "Ärata vanad pildid ellu – eemalda kulumisjäljed, too detailid esile ja lisa värvid."}
+            : "Ärata vanad pildid ellu, eemalda kulumisjäljed, too detailid esile ja lisa värvid."}
         </p>
       </div>
 
@@ -212,10 +212,31 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
             <p className="file-hint">JPG, PNG, WebP · kuni 20 MB · üks foto korraga</p>
             {errorMsg && <p role="alert" className="album-error">{errorMsg}</p>}
           </div>
-          {quota && <p className="quota-note">Tasuta fotosid alles: <strong>{quota.photosRemaining} / {quota.photosMax}</strong></p>}
+          {quota && (
+            <p className="quota-note">
+              {quota.photosRemaining > 0 ? (
+                <>
+                  Täna saad tasuta taastada veel{" "}
+                  <strong>
+                    {quota.photosRemaining} {quota.photosRemaining === 1 ? "foto" : "fotot"}
+                  </strong>{" "}
+                  (päevalimiit {quota.photosMax} fotot).
+                </>
+              ) : (
+                <>
+                  Tänane tasuta limiit ({quota.photosMax} fotot) on täis.
+                  {quota.photoResetHours ? ` Uued taastamised avanevad ~${quota.photoResetHours} h pärast.` : ""}
+                </>
+              )}
+            </p>
+          )}
           <div className="album-notice">
             <Leaf className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <p>Taastamine kasutab arvutusressursse. Vali foto, mida soovid päriselt taastada.</p>
+            <p>
+              Kasutage vastutustundlikult. Taastamine kasutab arvutusressursse.
+              <br />
+              Vali foto, mida soovid päriselt taastada.
+            </p>
           </div>
         </div>
       )}
@@ -422,6 +443,18 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
               </button>
             )}
           </div>
+
+          <p className="text-[13px] text-stone-400 text-center sm:text-right">
+            Alustades nõustute{" "}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-legal-terms"))}
+              className="underline underline-offset-2 hover:text-stone-700 transition-colors"
+            >
+              kasutustingimustega
+            </button>
+            .
+          </p>
         </div>
       )}
     </div>

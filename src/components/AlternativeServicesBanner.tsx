@@ -1,5 +1,5 @@
 import React from "react";
-import { ExternalLink, Sparkles, Gamepad2, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Gamepad2, Image as ImageIcon } from "lucide-react";
 
 export const AlternativeServicesBanner: React.FC = () => {
   return (
@@ -15,7 +15,7 @@ export const AlternativeServicesBanner: React.FC = () => {
           {/* Header section of banner */}
           <div className="flex items-center gap-2 text-xs font-semibold text-stone-600 uppercase tracking-wider">
             
-            <span>Soovitused ja kasulikud alternatiivid</span>
+            <span>Kasulikud alternatiivid</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 divide-y md:divide-y-0 md:divide-x divide-stone-200">
@@ -67,7 +67,7 @@ export const AlternativeServicesBanner: React.FC = () => {
                   Või vajad hoopis Kahooti alternatiivi, mis tehtud Eestis?
                 </h4>
                 <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
-                  Hetkel <strong>täiesti tasuta!</strong> Sünnipäevamängudele, firmaüritusele, koosolekule või peole – palju meeskonnamänge otse telefonis. Testi ja anna tagasisidet! Kõik on tasuta:{" "}
+                  Hetkel <strong>täiesti tasuta!</strong> Sünnipäevadele, firmaüritusele, koosolekule või peole – palju meeskonnamänge gruppidele. Testi ja anna tagasisidet! Kõik on tasuta:{" "}
                   <a
                     href="https://gamesforcrowds.com/"
                     target="_blank"
@@ -86,7 +86,6 @@ export const AlternativeServicesBanner: React.FC = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:bg-black text-white text-xs font-semibold transition-all shadow-xs group"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   <span>Mängi tasuta gamesforcrowds.com</span>
                   <ExternalLink className="w-3.5 h-3.5 text-stone-300 group-hover:translate-x-0.5 transition-transform" />
                 </a>

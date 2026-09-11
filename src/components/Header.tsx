@@ -33,9 +33,6 @@ export const Header: React.FC = () => {
           <img src="/camera-logo.png" alt="" className="brand-camera" width="52" height="52" />
           <div>
             <p className="brand-name">
-              Taasta vana pilt
-            </p>
-            <p className="text-[13px] text-stone-500 font-normal mt-1">
               taastavanapilt.ee
             </p>
           </div>
@@ -103,6 +100,9 @@ export const Header: React.FC = () => {
               </p>
               <p>
                 <strong className="text-stone-900">Näojoonte säilitamine:</strong> Töötluse eesmärk on säilitada näojooned ja loomulik ilme. Tehisintellekt võib siiski detaile muuta – võrdle tulemust alati originaaliga.
+              </p>
+              <p>
+                <strong className="text-stone-900">Tehisintellekt eksib:</strong> Mudel ei tea, mis fotol tegelikult oli – ta arvab. Aeg-ajalt läheb tulemus täiesti sürreaalseks: võivad tekkida veidrad näod, lisanduvad käed või olematud esemed. See on normaalne. Proovi uuesti või vali teine filter.
               </p>
               <p>
                 <strong className="text-stone-900">Loomulikud värvid:</strong> Mustvalgele või seepiafotole lisatakse pehmed, ajastutruud ja autentsed värvitoonid.

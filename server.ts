@@ -10,7 +10,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3001;
 
   // Max payload for high-resolution base64 images
   app.use(express.json({ limit: "50mb" }));

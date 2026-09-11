@@ -12,7 +12,6 @@ export const HeroDemoSlider: React.FC<Props> = ({
   return (
     <section id="hero-demo-section" className="album-example" aria-label={title}>
       <div className="example-toolbar">
-        <span>Üks foto. Kaks ajastut.</span>
         <button type="button" onClick={() => setIsOpen(!isOpen)} aria-expanded={isOpen} aria-controls="demo-photo-frame">
           {isOpen ? "Peida näidis" : "Vaata näidist"}
         </button>
@@ -27,7 +26,6 @@ export const HeroDemoSlider: React.FC<Props> = ({
         </div>
         <figcaption><span>{title.replace("Näide: ", "")}</span><span>Liiguta liugurit ↔</span></figcaption>
       </figure>}
-      <p className="example-note">Tehisintellekti loodud detailid ja värvid võivad algsest erineda.</p>
     </section>
   );
 };

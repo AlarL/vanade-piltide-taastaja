@@ -6,6 +6,16 @@ export const LegalFooter: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"privacy" | "terms">("privacy");
 
+  // Other components (e.g. the upload form) open the terms tab via this event
+  useEffect(() => {
+    const openTerms = () => {
+      setActiveTab("terms");
+      setModalOpen(true);
+    };
+    window.addEventListener("open-legal-terms", openTerms);
+    return () => window.removeEventListener("open-legal-terms", openTerms);
+  }, []);
+
   useEffect(() => {
     if (!modalOpen) return;
 
@@ -212,6 +222,13 @@ export const LegalFooter: React.FC = () => {
                   </h4>
                   <p>
                     Kuna tegu on eksperimentaalse lehega, on genereeritud värvid ja näoliigutused tehisintellekti matemaatiline interpretatsioon ega pruugi 100% vastata ajaloolisele tegelikkusele. Teenuse pakkuja ei vastuta anatoomiliste või esteetiliste moonutuste eest.
+                  </p>
+
+                  <h4 className="font-semibold text-stone-900 text-xs pt-1">
+                    4. Tehisintellekt teeb vigu
+                  </h4>
+                  <p>
+                    Tehisintellekt ei taasta fotot – ta genereerib selle uuesti oma oletuste põhjal. Seetõttu võib tulemus sisaldada vigu või olla täiesti sürreaalne: moonutatud või vahetunud näojooned, vale arv sõrmi või jäsemeid, olematud esemed, vale ajastu detailid ja loetamatu tekst. Tulemust ei tohi käsitleda ajaloolise, dokumentaalse ega tõendusliku materjalina. Võrdle tulemust alati originaaliga.
                   </p>
                 </div>
               </div>

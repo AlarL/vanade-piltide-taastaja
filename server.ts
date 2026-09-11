@@ -313,7 +313,6 @@ async function startServer() {
       if (userNote && typeof userNote === "string" && userNote.trim().length > 0) {
         const trimmedNote = userNote.trim();
         prompt = `${prompt}\n\n[USER SPECIFIC NOTES & COLOR WISHES - HIGHEST PRIORITY]:\n${trimmedNote}`;
-        console.log(`[Restore] User added specific note: "${trimmedNote}"`);
       }
 
       const allowedAspectRatios = ["1:1", "3:4", "4:3", "9:16", "16:9"];
@@ -650,7 +649,7 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
 
       const videoPrompt = rawPrompt.trim();
 
-      console.log(`[Video] Starting Veo video generation (aspectRatio: ${videoAspectRatio})... Prompt: ${videoPrompt}`);
+      console.log(`[Video] Starting Veo video generation (aspectRatio: ${videoAspectRatio})...`);
 
       let operation;
       let usedModel = "veo-3.1-lite-generate-preview";

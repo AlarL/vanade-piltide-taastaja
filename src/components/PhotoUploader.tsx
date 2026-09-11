@@ -187,11 +187,17 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
       <div className="upload-heading">
         <p className="album-eyebrow">Vanade fotode taastaja</p>
-        <h1>{uploadedImage ? "Anna fotole uus ilme." : <>Vanad fotod.<br /><em>Uus elu.</em></>}</h1>
+        <h1>{uploadedImage ? "Anna fotole uus ilme." : <>Vanad fotod.<br /><em>Uued värvid.</em></>}</h1>
         <p className="upload-description">
-          {uploadedImage
-            ? "Vali taastamise stiil ja lisa soovi korral värvisoov."
-            : "Ärata vanad pildid ellu, eemalda kulumisjäljed, too detailid esile ja lisa värvid."}
+          {uploadedImage ? (
+            "Vali taastamise stiil ja lisa soovi korral värvisoov."
+          ) : (
+            <>
+              Ärata vanad pildid ellu!
+              <br />
+              Eemalda kulumisjäljed, too detailid esile ja lisa värvid.
+            </>
+          )}
         </p>
       </div>
 

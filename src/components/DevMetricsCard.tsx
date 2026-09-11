@@ -7,7 +7,6 @@ import {
   ChevronDown,
   ChevronUp,
   AlertCircle,
-  Info,
 } from "lucide-react";
 import { DevMetrics } from "../types";
 
@@ -100,13 +99,9 @@ export const DevMetricsCard: React.FC<DevMetricsCardProps> = ({
       {/* Expanded Details - Flowing downward naturally */}
       {isExpanded && (
         <div className="px-4 pb-4 pt-1 space-y-3.5 border-t border-stone-200/80">
-          {/* Responsibility prompt note */}
-          <div className="p-2.5 rounded-xl bg-teal-50/70 border border-teal-200/70 flex items-start gap-2 text-[13px] text-teal-950 leading-relaxed">
-            <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
-            <span>
-              Tehisintellekti töötlus kasutab elektrienergiat. Allolevad keskkonnamõju näitajad on hinnangulised, mitte selle päringu mõõdetud energiakulu.
-            </span>
-          </div>
+          <p className="text-[13px] text-stone-500 leading-relaxed">
+            Tehisintellekti töötlus kasutab elektrienergiat. Allolevad keskkonnamõju näitajad on hinnangulised.
+          </p>
 
           {/* Error Message if present */}
           {errorDetails && (

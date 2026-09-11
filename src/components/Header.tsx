@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Info, X, ShieldCheck } from "lucide-react";
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onHome?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onHome }) => {
   const [showInfo, setShowInfo] = useState(false);
 
   // Close modal on Escape key and prevent background scroll
@@ -29,14 +33,18 @@ export const Header: React.FC = () => {
     <header className="album-header w-full border-b border-stone-200">
       <div className="max-w-6xl mx-auto px-5 sm:px-8 h-24 flex items-center justify-between">
         {/* Logo & Name */}
-        <div className="flex items-center gap-3">
+        <button
+          id="brand-home-btn"
+          type="button"
+          onClick={onHome}
+          className="flex items-center gap-3 rounded-lg text-left hover:opacity-80 transition-opacity"
+          title="Tagasi esilehele"
+        >
           <img src="/camera-logo.png" alt="" className="brand-camera" width="52" height="52" />
-          <div>
-            <p className="brand-name">
-              taastavanapilt.ee
-            </p>
-          </div>
-        </div>
+          <p className="brand-name">
+            taastavanapilt.ee
+          </p>
+        </button>
 
         {/* Right Controls */}
         <div className="flex items-center gap-2">
@@ -110,7 +118,7 @@ export const Header: React.FC = () => {
               <div className="p-3.5 bg-teal-50/90 rounded-xl border border-teal-200/80 text-teal-950 flex items-start gap-2.5">
                 <ShieldCheck className="w-5 h-5 text-teal-800 shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed">
-                  <strong className="font-semibold text-teal-950">Privaatsus:</strong> Pilte ja videoid ei salvestata serveritesse ega andmebaasidesse. Töötlemine toimub vahemälus ja failid kustuvad koheselt.
+                  <strong className="font-semibold text-teal-950">Privaatsus:</strong> Me ei salvesta pilte ega videoid oma serveritesse ega andmebaasidesse – töötlemine toimub vahemälus ja failid kustuvad koheselt. Taastamiseks saadetakse foto Google&#39;i Gemini API-sse, kus seda töödeldakse ajutiselt ega kasutata mudelite treenimiseks.
                 </p>
               </div>
             </div>

@@ -167,7 +167,7 @@ export const LegalFooter: React.FC = () => {
             {activeTab === "privacy" && (
               <div className="space-y-3 text-xs text-stone-600 leading-relaxed pt-1">
                 <div className="p-3 bg-teal-50/80 rounded-xl border border-teal-200/80 text-teal-950 font-medium">
-                  🔒 <strong>Pilti ei salvestata, videot ei salvestata:</strong> Üleslaaditud fotod ja loodud videod kustutatakse serverist koheselt pärast töötlemise lõppu.
+                  🔒 <strong>Pilti ei salvestata, videot ei salvestata:</strong> Üleslaaditud fotod ja loodud videod kustutatakse serverist koheselt pärast töötlemise lõppu. Töötlemine ise toimub Google&#39;i Gemini API-s.
                 </div>
 
                 <div className="space-y-2">
@@ -179,10 +179,10 @@ export const LegalFooter: React.FC = () => {
                   </p>
 
                   <h4 className="font-semibold text-stone-900 text-xs pt-1">
-                    2. Mudelite treenimine
+                    2. Töötlemine Google&#39;i Gemini API-s
                   </h4>
                   <p>
-                    Teie perepilte ega fotosid ei kasutata tehisintellekti mudelite treenimiseks ega edastata kolmandatele osapooltele väljaspool konkreetse pilditöötluspäringu teostamist.
+                    Taastamise teostab Google&#39;i Gemini (ja videote puhul Veo) mudel. Selleks edastatakse teie foto töötlemise ajaks Google&#39;i API-sse, kus seda töödeldakse ajutiselt ega kasutata tehisintellekti mudelite treenimiseks. Väljaspool seda konkreetset pilditöötluspäringut ei edastata teie fotosid ühelegi kolmandale osapoolele.
                   </p>
 
                   <h4 className="font-semibold text-stone-900 text-xs pt-1">

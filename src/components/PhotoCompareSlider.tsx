@@ -5,8 +5,6 @@ import {
   Sliders,
   Columns,
   Eye,
-  Maximize2,
-  Minimize2,
   ZoomIn,
   ZoomOut,
   Sparkles,
@@ -40,7 +38,6 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
   const [mode, setMode] = useState<CompareMode>("slider");
   const [isHoldPressed, setIsHoldPressed] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState<boolean>(false);
   const [isExportingSideBySide, setIsExportingSideBySide] = useState<boolean>(false);
@@ -135,30 +132,10 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
     }
   };
 
-  // Toggle fullscreen mode
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
-  // Escape key listener for fullscreen
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isFullscreen) {
-        setIsFullscreen(false);
-      }
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [isFullscreen]);
-
   return (
     <div
       id="photo-compare-workspace"
-      className={`w-full max-w-5xl mx-auto transition-all ${
-        isFullscreen
-          ? "fixed inset-0 z-50 bg-[#fbfbfa] p-4 md:p-8 flex flex-col justify-between overflow-auto"
-          : "space-y-6"
-      }`}
+      className="w-full max-w-5xl mx-auto space-y-6"
     >
       {/* Top Controls Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white/80 backdrop-blur-xs border border-stone-200/80 rounded-xl px-4 py-3 shadow-xs">
@@ -240,46 +217,38 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
         {/* View & Action tools */}
         <div className="flex items-center gap-2">
           {/* Zoom controls */}
-          <div className="hidden sm:flex items-center gap-1 border border-stone-200 rounded-lg px-1.5 py-1 text-xs text-stone-600">
+          <div className="flex items-center gap-1 border border-stone-200 rounded-lg px-1.5 py-1 text-xs text-stone-600">
             <button
               id="zoom-out-btn"
               type="button"
               onClick={() => setZoomLevel((z) => Math.max(1, z - 0.5))}
               disabled={zoomLevel <= 1}
-              className="p-1 hover:text-stone-900 disabled:opacity-30 rounded hover:bg-stone-100"
+              className="p-1.5 hover:text-stone-900 disabled:opacity-30 rounded hover:bg-stone-100"
               title="Vähenda"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="w-8 text-center font-mono text-[13px]">
+            <button
+              id="zoom-reset-btn"
+              type="button"
+              onClick={() => setZoomLevel(1)}
+              disabled={zoomLevel === 1}
+              className="w-10 text-center font-mono text-[13px] py-1 rounded hover:bg-stone-100 disabled:hover:bg-transparent"
+              title="Taasta algne suurus"
+            >
               {zoomLevel}x
-            </span>
+            </button>
             <button
               id="zoom-in-btn"
               type="button"
               onClick={() => setZoomLevel((z) => Math.min(2.5, z + 0.5))}
               disabled={zoomLevel >= 2.5}
-              className="p-1 hover:text-stone-900 disabled:opacity-30 rounded hover:bg-stone-100"
+              className="p-1.5 hover:text-stone-900 disabled:opacity-30 rounded hover:bg-stone-100"
               title="Suurenda näodetailide vaatamiseks"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
-
-          {/* Fullscreen toggle */}
-          <button
-            id="fullscreen-toggle-btn"
-            type="button"
-            onClick={toggleFullscreen}
-            className="p-2 text-stone-600 hover:text-stone-900 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors"
-            title={isFullscreen ? "Välju täisekraanist" : "Täisekraan"}
-          >
-            {isFullscreen ? (
-              <Minimize2 className="w-4 h-4" />
-            ) : (
-              <Maximize2 className="w-4 h-4" />
-            )}
-          </button>
 
           {/* Reset / New photo button */}
           <button

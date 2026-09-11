@@ -215,7 +215,7 @@ export default function App() {
   return (
     <div className="album-app min-h-screen bg-[#f7f4ee] text-stone-900 flex flex-col antialiased selection:bg-teal-100 selection:text-teal-900">
       {/* 1. Flat Nordic Header */}
-      <Header />
+      <Header onHome={handleReset} />
 
       {/* 2. Main Content Area */}
       <main className="album-main flex-1 w-full mx-auto px-5 sm:px-8">

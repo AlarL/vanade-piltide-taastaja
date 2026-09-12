@@ -19,7 +19,7 @@ import { DevMetricsCard } from "./DevMetricsCard";
 import { CompanyAdCard } from "./CompanyAdCard";
 import { DeveloperCoffeeCard } from "./DeveloperCoffeeCard";
 import { getFilterById } from "../filters";
-import { createSideBySideComparisonImage, saveImageToDevice } from "../utils/imageExport";
+import { createSideBySideComparisonImage, downloadDataUrl } from "../utils/imageExport";
 
 interface PhotoCompareSliderProps {
   result: RestoredPhotoResult;
@@ -37,12 +37,9 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState<boolean>(false);
   const [isExportingSideBySide, setIsExportingSideBySide] = useState<boolean>(false);
-  const [showSaveHelp, setShowSaveHelp] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
-  const isTouchDevice =
-    typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
 
   // Close download menu on click outside
   useEffect(() => {
@@ -92,21 +89,20 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
     }
   };
 
-  // Save high-resolution restored image (share sheet on mobile, download on desktop)
-  const handleDownload = async () => {
+  // Save high-resolution restored image (direct file download)
+  const handleDownload = () => {
     const name = result.fileName
       ? `taastatud-${result.fileName.replace(/\.[^/.]+$/, "")}.png`
       : "taastatud-foto.png";
 
     setShowDownloadMenu(false);
-    const outcome = await saveImageToDevice(result.restoredImage, name);
+    downloadDataUrl(result.restoredImage, name);
 
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 2500);
-    if (outcome === "downloaded" && isTouchDevice) setShowSaveHelp(true);
   };
 
-  // Save Side-by-Side comparison composite image
+  // Save Side-by-Side comparison composite image (direct file download)
   const handleDownloadSideBySide = async () => {
     try {
       setIsExportingSideBySide(true);
@@ -118,10 +114,9 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
         ? result.fileName.replace(/\.[^/.]+$/, "")
         : "foto";
       setShowDownloadMenu(false);
-      const outcome = await saveImageToDevice(compositeUrl, `enne-ja-parast-${baseName}.jpg`);
+      downloadDataUrl(compositeUrl, `enne-ja-parast-${baseName}.jpg`);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 2500);
-      if (outcome === "downloaded" && isTouchDevice) setShowSaveHelp(true);
     } catch (err) {
       console.error("Failed to generate side-by-side export:", err);
     } finally {
@@ -296,15 +291,6 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
           )}
         </div>
       </div>
-
-      {/* Mobile fallback hint when the browser blocks a normal file download */}
-      {showSaveHelp && (
-        <p className="text-xs text-stone-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 leading-relaxed">
-          Kui fotot ei ilmunud galeriisse, vajuta pildil sõrmega pikalt ja vali „Salvesta pilt“.
-          Mõni rakendusesisene brauser (Facebook, Instagram) blokeerib allalaadimise – ava leht
-          Chrome'is või Safaris.
-        </p>
-      )}
 
       {/* Main Comparison Canvas */}
       <div className="relative bg-white border border-stone-200/90 rounded-2xl p-3 md:p-6 shadow-xs overflow-hidden">

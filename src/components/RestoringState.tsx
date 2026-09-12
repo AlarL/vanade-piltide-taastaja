@@ -22,6 +22,7 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
   // Advance progressive steps to give feedback
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,101 +57,107 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
   return (
     <div
       id="restoring-state-container"
-      className="w-full max-w-lg mx-auto py-2 pb-24 sm:py-3 sm:pb-3"
+      className="w-full max-w-2xl mx-auto py-1"
     >
-      <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-3.5 text-center">
-        {/* Photo processing preview - Clean flat container without gradient */}
-        <div className="relative mx-auto w-32 h-32 sm:w-36 sm:h-36 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs flex items-center justify-center">
-          <img
-            src={originalImage}
-            alt="Töödeldav foto"
-            className="w-full h-full object-cover filter blur-[1px] brightness-95 transition-all"
-          />
+      <div className="bg-white border border-stone-200 rounded-xl p-3.5 sm:p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4">
+          {/* Photo processing preview - Compact thumbnail */}
+          <div className="relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs flex items-center justify-center">
+            <img
+              src={originalImage}
+              alt="Töödeldav foto"
+              className="w-full h-full object-cover filter blur-[1px] brightness-95"
+            />
 
-          {/* Flat scanning line animation */}
-          <div className="absolute inset-x-0 h-1 bg-teal-600 top-1/2 -translate-y-1/2 animate-pulse opacity-80" />
+            {/* Flat scanning line animation */}
+            <div className="absolute inset-x-0 h-1 bg-teal-600 top-1/2 -translate-y-1/2 animate-pulse opacity-80" />
 
-          {/* Center flat badge in deep Nordic teal */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-10 h-10 rounded-lg bg-teal-800 text-white shadow-md flex items-center justify-center">
-              <Wand2
-                className="w-5 h-5 text-teal-200 animate-spin"
-                style={{ animationDuration: "6s" }}
-              />
+            {/* Center flat badge in deep Nordic teal */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-teal-800 text-white shadow-md flex items-center justify-center">
+                <Wand2
+                  className="w-4 h-4 text-teal-200 animate-spin"
+                  style={{ animationDuration: "6s" }}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Status text with live timer badge */}
-        <div className="space-y-1.5">
-          <div>
-            <h3 className="text-lg font-semibold text-stone-900">
-              Foto taastamine...
-            </h3>
-            <p className="text-xs text-stone-500 font-normal">Palun oodake hetk</p>
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 font-mono text-xs font-semibold">
-            <Timer className="w-3.5 h-3.5 text-teal-700 animate-pulse" />
-            <span>Kulunud aeg: {formatElapsed(elapsedSeconds)}</span>
-          </div>
-        </div>
-
-        {/* Step progress list */}
-        <div className="space-y-1 max-w-sm mx-auto text-left pt-0.5">
-          {STEPS.map((step, idx) => {
-            const isDone = idx < currentStepIndex;
-            const isCurrent = idx === currentStepIndex;
-            return (
-              <div
-                key={step}
-                className={`flex items-center gap-2 text-xs transition-colors py-px ${
-                  isDone
-                    ? "text-teal-800 font-medium"
-                    : isCurrent
-                    ? "text-teal-950 font-semibold"
-                    : "text-stone-400"
-                }`}
-              >
-                {isDone ? (
-                  <CheckCircle2 className="w-4 h-4 text-teal-700 shrink-0" />
-                ) : isCurrent ? (
-                  <CircleDashed className="w-4 h-4 text-teal-700 animate-spin shrink-0" />
-                ) : (
-                  <div className="w-4 h-4 rounded-full border border-stone-300 shrink-0" />
-                )}
-                <span className="leading-snug">{step}</span>
+          {/* Center details */}
+          <div className="flex-1 min-w-0 text-center sm:text-left space-y-1.5 w-full">
+            <div className="flex flex-wrap items-center justify-center sm:justify-between gap-2">
+              <div>
+                <h3 className="text-base font-semibold text-stone-900 leading-tight">
+                  Foto taastamine...
+                </h3>
+                <p className="text-xs text-stone-500 font-normal">Palun oodake hetk</p>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Cancel button - Flat styling (mobile uses the sticky bar below) */}
-        <div className="pt-0.5 hidden sm:block">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors border border-stone-200"
-          >
-            <X className="w-3.5 h-3.5" />
-            <span>Katkesta</span>
-          </button>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 font-mono text-xs font-semibold">
+                <Timer className="w-3.5 h-3.5 text-teal-700 animate-pulse" />
+                <span>Kulunud aeg: {formatElapsed(elapsedSeconds)}</span>
+              </div>
+            </div>
+
+            {/* Current step active pill */}
+            <div className="flex items-center justify-center sm:justify-start gap-2 text-xs py-1 px-2.5 rounded-lg bg-stone-50 border border-stone-200/70 text-stone-800 font-medium">
+              <CircleDashed className="w-3.5 h-3.5 text-teal-700 animate-spin shrink-0" />
+              <span className="truncate">{STEPS[currentStepIndex]}</span>
+              <span className="text-stone-400 text-[11px] ml-auto shrink-0 hidden sm:inline">
+                Samm {currentStepIndex + 1}/{STEPS.length}
+              </span>
+            </div>
+
+            {/* Step progress bar indicators */}
+            <div className="grid grid-cols-5 gap-1.5 pt-0.5">
+              {STEPS.map((step, idx) => {
+                const isDone = idx < currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+                return (
+                  <div
+                    key={step}
+                    className={`h-1.5 rounded-full transition-all ${
+                      isDone
+                        ? "bg-teal-700"
+                        : isCurrent
+                        ? "bg-teal-500 animate-pulse"
+                        : "bg-stone-200"
+                    }`}
+                    title={step}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Cancel button */}
+          <div className="shrink-0 self-center hidden sm:block">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors border border-stone-200"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Katkesta</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Sticky mobile status bar so the timer and cancel stay reachable while scrolling */}
-      <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 backdrop-blur-xs px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center justify-between gap-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+      <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 backdrop-blur-xs px-4 py-2.5 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex items-center justify-between gap-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
         <div className="min-w-0">
           <p className="text-xs font-semibold text-stone-900 truncate">Foto taastamine...</p>
-          <p className="text-[13px] font-mono text-teal-800">
+          <p className="text-[12px] font-mono text-teal-800">
             Kulunud aeg: {formatElapsed(elapsedSeconds)}
           </p>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex shrink-0 items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors border border-stone-200"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg border border-stone-200"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
           <span>Katkesta</span>
         </button>
       </div>

@@ -35,37 +35,11 @@ export function downloadDataUrl(dataUrl: string, filename: string): void {
   if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl!), 60000);
 }
 
-export type SaveImageOutcome = "shared" | "downloaded";
-
 /**
- * Saves an image to the device. On touch devices the native share sheet is used
- * when available ("Salvesta pilti" works there even when <a download> is blocked
- * in in-app browsers); otherwise a normal file download is triggered.
+ * Saves / downloads an image to the device. Triggers a direct file download.
  */
-export async function saveImageToDevice(
-  dataUrl: string,
-  filename: string
-): Promise<SaveImageOutcome> {
-  const isTouchDevice =
-    typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
-
-  if (isTouchDevice) {
-    try {
-      const blob = dataUrlToBlob(dataUrl);
-      const file = new File([blob], filename, { type: blob.type });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename });
-        return "shared";
-      }
-    } catch (err: any) {
-      // User dismissed the share sheet - do not fall back to a second action
-      if (err?.name === "AbortError") return "shared";
-      console.warn("Share failed, falling back to download:", err);
-    }
-  }
-
+export function saveImageToDevice(dataUrl: string, filename: string): void {
   downloadDataUrl(dataUrl, filename);
-  return "downloaded";
 }
 
 // Extract a crisp still frame from a playing or paused HTMLVideoElement

@@ -85,25 +85,29 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
   const timerRef = useRef<number | null>(null);
   const pollIntervalRef = useRef<number | null>(null);
 
+  // Auto-scroll directly to video result (or waiting state) on all screen sizes
   useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia("(max-width: 800px)").matches) return;
+    if (videoState.videoUrl && videoResultRef.current) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const timeout = window.setTimeout(() => {
+        videoResultRef.current?.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "start",
+        });
+      }, 100);
+      return () => window.clearTimeout(timeout);
+    }
 
-    const target = videoState.isGenerating
-      ? waitingSectionRef.current
-      : videoState.videoUrl
-        ? videoResultRef.current
-        : null;
-    if (!target) return;
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timeout = window.setTimeout(() => {
-      target.scrollIntoView({
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-        block: "start",
-      });
-    }, videoState.isGenerating ? 500 : 250);
-
-    return () => window.clearTimeout(timeout);
+    if (videoState.isGenerating && waitingSectionRef.current) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const timeout = window.setTimeout(() => {
+        waitingSectionRef.current?.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "start",
+        });
+      }, 300);
+      return () => window.clearTimeout(timeout);
+    }
   }, [videoState.isGenerating, videoState.videoUrl]);
 
   // Clear timers on unmount
@@ -413,6 +417,8 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
     const a = document.createElement("a");
     a.href = videoState.videoUrl;
     a.download = filename;
+    a.rel = "noopener";
+    a.target = "_self";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -447,18 +453,15 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
     const videoLink = document.createElement("a");
     videoLink.href = videoState.videoUrl;
     videoLink.download = `taastatud-video-${baseName}.mp4`;
+    videoLink.rel = "noopener";
+    videoLink.target = "_self";
     document.body.appendChild(videoLink);
     videoLink.click();
     document.body.removeChild(videoLink);
 
     // 2. Download Restored Photo
     setTimeout(() => {
-      const imgLink = document.createElement("a");
-      imgLink.href = restoredImageUrl;
-      imgLink.download = `taastatud-foto-${baseName}.png`;
-      document.body.appendChild(imgLink);
-      imgLink.click();
-      document.body.removeChild(imgLink);
+      downloadDataUrl(restoredImageUrl, `taastatud-foto-${baseName}.png`);
     }, 400);
 
     setDownloadSuccess("combo");

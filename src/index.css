@@ -32,7 +32,7 @@ input[type="text"], textarea, select { font-size: 1rem; }
 .brand-camera { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
 .brand-name { font-family: var(--font-serif); font-size: 2.8rem; letter-spacing: -.035em; line-height: 1; }
 .brand-name .brand-accent { color: #773f2b; }
-.album-main { max-width: 1180px; padding-top: 56px; padding-bottom: 48px; }
+.album-main { max-width: 1180px; padding-top: 24px; padding-bottom: 24px; }
 .album-workspace { display: grid; grid-template-columns: 1.14fr 1fr; align-items: center; gap: 64px; }
 .album-workspace:has(.upload-settings) { display: block; }
 .album-workspace:has(.upload-settings) .album-example { display: none; }
@@ -81,7 +81,7 @@ input[type="text"], textarea, select { font-size: 1rem; }
 /* On mobile the example sits directly under the intro text, inside the uploader column */
 .album-example-inline { margin: 22px 0 34px; }
 .album-example-inline .album-example { max-width: 600px; width: 100%; margin: 0 auto; }
-.album-recommendations h4 { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 400; line-height: 1.25; }
+.album-recommendations h4 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; }
 #app-legal-footer { background: transparent; }
 #app-legal-footer > div > div:first-child { flex-wrap: wrap; justify-content: center; }
 #how-it-works-modal-content, #legal-modal-content { max-height: 88dvh; overflow-y: auto; }

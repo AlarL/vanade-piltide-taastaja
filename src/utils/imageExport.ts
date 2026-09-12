@@ -2,14 +2,70 @@
  * Utility functions for exporting and downloading photos, composite before/after images, and video frames.
  */
 
-// Helper to trigger a browser file download
+// Synchronous data URL -> Blob so the user gesture stays intact (required by iOS share sheet)
+export function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, data] = dataUrl.split(",");
+  const mime = header.match(/data:([^;]+)/)?.[1] || "image/png";
+  if (!header.includes("base64")) {
+    return new Blob([decodeURIComponent(data)], { type: mime });
+  }
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+// Helper to trigger a browser file download. Blob URLs are far more reliable on
+// mobile browsers than multi-megabyte data: URLs.
 export function downloadDataUrl(dataUrl: string, filename: string): void {
+  let objectUrl: string | null = null;
   const link = document.createElement("a");
-  link.href = dataUrl;
+  try {
+    objectUrl = URL.createObjectURL(dataUrlToBlob(dataUrl));
+    link.href = objectUrl;
+  } catch {
+    link.href = dataUrl;
+  }
   link.download = filename;
+  link.rel = "noopener";
+  link.target = "_self";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl!), 60000);
+}
+
+export type SaveImageOutcome = "shared" | "downloaded";
+
+/**
+ * Saves an image to the device. On touch devices the native share sheet is used
+ * when available ("Salvesta pilti" works there even when <a download> is blocked
+ * in in-app browsers); otherwise a normal file download is triggered.
+ */
+export async function saveImageToDevice(
+  dataUrl: string,
+  filename: string
+): Promise<SaveImageOutcome> {
+  const isTouchDevice =
+    typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+
+  if (isTouchDevice) {
+    try {
+      const blob = dataUrlToBlob(dataUrl);
+      const file = new File([blob], filename, { type: blob.type });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        return "shared";
+      }
+    } catch (err: any) {
+      // User dismissed the share sheet - do not fall back to a second action
+      if (err?.name === "AbortError") return "shared";
+      console.warn("Share failed, falling back to download:", err);
+    }
+  }
+
+  downloadDataUrl(dataUrl, filename);
+  return "downloaded";
 }
 
 // Extract a crisp still frame from a playing or paused HTMLVideoElement

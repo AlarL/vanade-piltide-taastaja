@@ -53,6 +53,18 @@ export default function App() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // On narrow screens the demo slider belongs under the intro text, not in a side column
+  const [isNarrowLayout, setIsNarrowLayout] = useState<boolean>(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 800px)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 800px)");
+    const onChange = (e: MediaQueryListEvent) => setIsNarrowLayout(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   const fetchQuota = useCallback(async () => {
     try {
       const clientId = getOrCreateClientId();
@@ -71,6 +83,13 @@ export default function App() {
   useEffect(() => {
     fetchQuota();
   }, [fetchQuota]);
+
+  // Bring the finished photo (or an error) into view - on mobile the page is long
+  useEffect(() => {
+    if (!result && !error) return;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+  }, [result, error]);
 
   const handleImageSelected = async (
     base64: string,
@@ -285,12 +304,13 @@ export default function App() {
         {!isLoading && !result && (
           <div className="album-workspace">
             {/* Interactive example photo slider in header area without percentage display */}
-            <HeroDemoSlider />
+            {!isNarrowLayout && <HeroDemoSlider />}
 
             {/* Photo upload and customization flow */}
             <PhotoUploader
               onImageSelected={handleImageSelected}
               isLoading={isLoading}
+              inlineDemo={isNarrowLayout ? <HeroDemoSlider /> : null}
               quota={quota}
             />
           </div>

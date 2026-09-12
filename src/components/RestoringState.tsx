@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Sparkles, CheckCircle2, CircleDashed, X, Timer } from "lucide-react";
 import { CompanyAdCard } from "./CompanyAdCard";
 
@@ -23,6 +23,20 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const waitingSectionRef = useRef<HTMLDivElement>(null);
+
+  // On mobile the page is long, so bring the "while you wait" recommendations into view
+  useEffect(() => {
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timeout = setTimeout(() => {
+      waitingSectionRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    }, 600);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Advance progressive steps to give feedback
   useEffect(() => {
@@ -58,7 +72,7 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
   return (
     <div
       id="restoring-state-container"
-      className="w-full max-w-xl mx-auto space-y-6 py-4"
+      className="w-full max-w-xl mx-auto space-y-6 py-4 pb-24 sm:pb-4"
     >
       <div className="bg-white border border-stone-200 rounded-2xl p-6 md:p-8 shadow-xs space-y-6 text-center">
         {/* Photo processing preview - Clean flat container without gradient */}
@@ -129,8 +143,8 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
           })}
         </div>
 
-        {/* Cancel button - Flat styling */}
-        <div className="pt-2">
+        {/* Cancel button - Flat styling (mobile uses the sticky bar below) */}
+        <div className="pt-2 hidden sm:block">
           <button
             type="button"
             onClick={onCancel}
@@ -142,8 +156,35 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
         </div>
       </div>
 
-      {/* Prominent Advertisement shown during restoration */}
-      <CompanyAdCard variant="generating" />
+      {/* Recommendations to read while the photo is being restored */}
+      <div ref={waitingSectionRef} className="scroll-mt-4 space-y-3">
+        <div className="sm:hidden flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
+          <CircleDashed className="w-4 h-4 text-teal-700 animate-spin shrink-0" />
+          <span className="text-xs text-stone-600 leading-snug">
+            Taastamine käib – kulunud aeg on all ribal. Vaata seniks soovitust.
+          </span>
+        </div>
+
+        <CompanyAdCard variant="generating" />
+      </div>
+
+      {/* Sticky mobile status bar so the timer and cancel stay reachable while scrolling */}
+      <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 backdrop-blur-xs px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center justify-between gap-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-stone-900 truncate">Foto taastamine...</p>
+          <p className="text-[13px] font-mono text-teal-800">
+            Kulunud aeg: {formatElapsed(elapsedSeconds)}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="inline-flex shrink-0 items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors border border-stone-200"
+        >
+          <X className="w-4 h-4" />
+          <span>Katkesta</span>
+        </button>
+      </div>
     </div>
   );
 };

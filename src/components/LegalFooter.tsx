@@ -109,21 +109,21 @@ export const LegalFooter: React.FC = () => {
           <div
             id="legal-modal-content"
             role="dialog" aria-modal="true" aria-label="Privaatsus ja kasutustingimused"
-            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 space-y-4 max-h-[90vh] overflow-y-auto my-auto relative"
+            className="bg-white rounded-2xl w-full max-w-md sm:max-w-lg p-5 sm:p-6 shadow-2xl border border-stone-200 space-y-4 max-h-[88dvh] overflow-y-auto overscroll-contain my-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-stone-100 text-stone-800 flex items-center justify-center">
+            <div className="flex items-start justify-between gap-3 border-b border-stone-100 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-stone-100 text-stone-800 flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-4 h-4 text-teal-800" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-stone-900">
-                    taastavanapilt.ee • Andmekaitse ja õigused
+                    Andmekaitse ja õigused
                   </h3>
                   <p className="text-[13px] text-stone-500">
-                    Õiguslikud alused ja privaatsustingimused
+                    taastavanapilt.ee privaatsustingimused
                   </p>
                 </div>
               </div>
@@ -131,35 +131,35 @@ export const LegalFooter: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Tab switch */}
-            <div className="flex rounded-xl bg-stone-100 p-1 text-xs">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1 text-[13px]">
               <button
                 type="button"
                 onClick={() => setActiveTab("privacy")}
-                className={`flex-1 py-1.5 rounded-lg font-medium transition-all ${
+                className={`py-2 px-2 rounded-lg font-medium leading-tight transition-all ${
                   activeTab === "privacy"
                     ? "bg-white text-stone-900 shadow-2xs"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
               >
-                Andmekaitse & GDPR
+                Andmekaitse
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("terms")}
-                className={`flex-1 py-1.5 rounded-lg font-medium transition-all ${
+                className={`py-2 px-2 rounded-lg font-medium leading-tight transition-all ${
                   activeTab === "terms"
                     ? "bg-white text-stone-900 shadow-2xs"
                     : "text-stone-600 hover:text-stone-900"
                 }`}
               >
-                Vastutuse välistus & Reeglid
+                Vastutus & reeglid
               </button>
             </div>
 

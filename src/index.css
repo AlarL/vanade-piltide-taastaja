@@ -31,6 +31,7 @@ input[type="text"], textarea, select { font-size: 1rem; }
 .album-header { background: #f7f4ee; }
 .brand-camera { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
 .brand-name { font-family: var(--font-serif); font-size: 2.8rem; letter-spacing: -.035em; line-height: 1; }
+.brand-name .brand-accent { color: #773f2b; }
 .album-main { max-width: 1180px; padding-top: 56px; padding-bottom: 48px; }
 .album-workspace { display: grid; grid-template-columns: 1.14fr 1fr; align-items: center; gap: 64px; }
 .album-workspace:has(.upload-settings) { display: block; }
@@ -42,10 +43,15 @@ input[type="text"], textarea, select { font-size: 1rem; }
 .upload-description { color: #655d53; font-size: 1.05rem; line-height: 1.7; max-width: 410px; }
 .album-drop-zone { padding: 4px 0 8px; border-radius: 8px; transition: background .15s; }
 .album-drop-zone.is-dragging { background: #efdfd3; outline: 2px dashed #773f2b; outline-offset: 8px; }
-.album-primary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; background: #773f2b; color: white; border: 1px solid #773f2b; border-radius: 6px; padding: 16px 24px; font-weight: 500; font-size: 1rem; min-height: 54px; }
-.album-primary:hover { background: #60311f; }
-.drop-hint { font-size: .875rem; color: #655d53; margin-top: 13px; }
-.file-hint { font-size: .8125rem; color: #73695e; margin-top: 5px; line-height: 1.6; }
+.album-primary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; background: #2f5b45; color: white; border: 1px solid #2f5b45; border-radius: 6px; padding: 16px 24px; font-weight: 500; font-size: 1rem; min-height: 54px; }
+.album-primary:hover { background: #24493a; border-color: #24493a; }
+/* Same forest green as the landing CTA, for Tailwind-styled buttons */
+.btn-forest { background: #2f5b45; color: #fff; }
+.btn-forest:hover { background: #24493a; }
+.btn-forest:active { background: #1d3a2e; }
+.album-cta-wrap { display: inline-block; max-width: 100%; }
+.drop-hint { font-size: .875rem; color: #655d53; }
+.file-hint { font-size: .75rem; color: #73695e; margin-top: 8px; line-height: 1.6; text-align: center; }
 .quota-note { font-size: .875rem; color: #655d53; }
 /* Official Buy Me a Coffee button styling (#FFDD00 / black / Cookie) */
 .bmc-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 8px; background: #FFDD00; border: 1px solid #000; color: #000; font-family: "Cookie", var(--font-serif), cursive; font-size: 1.5rem; line-height: 1; text-decoration: none; box-shadow: 0 2px 4px rgb(0 0 0 / .12); transition: transform .15s ease, box-shadow .15s ease; }
@@ -53,7 +59,7 @@ input[type="text"], textarea, select { font-size: 1rem; }
 .bmc-button:active { transform: translateY(0); }
 .bmc-button span[aria-hidden] { font-size: 1.35rem; font-family: var(--font-sans); }
 .album-notice { display: flex; align-items: flex-start; gap: 10px; border-left: 3px solid #c08a3e; border-radius: 0 8px 8px 0; background: #fbf3e6; padding: 13px 15px; color: #6b4d21; font-size: .8125rem; line-height: 1.6; }
-.album-notice svg { margin-top: 3px; color: #b07a2e; }
+.album-notice svg { margin-top: 3px; color: #2f5b45; }
 .album-error { border-left: 3px solid #a0312c; background: #fff0ed; color: #862a26; margin-top: 16px; padding: 12px; font-size: .875rem; }
 .example-toolbar { display: flex; justify-content: space-between; gap: 15px; font-size: .8125rem; color: #73695e; margin-bottom: 20px; }
 .example-toolbar button { text-decoration: underline; text-underline-offset: 4px; }
@@ -71,17 +77,22 @@ input[type="text"], textarea, select { font-size: 1rem; }
 .album-photo-frame figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 17px; font-size: .75rem; color: #756b60; }
 .example-note { color: #73695e; font-size: .75rem; line-height: 1.6; margin-top: 25px; }
 .album-recommendations { color: #655d53; }
+/* On mobile the example sits directly under the intro text, inside the uploader column */
+.album-example-inline { margin: 22px 0 34px; }
+.album-example-inline .album-example { max-width: 600px; width: 100%; margin: 0 auto; }
 .album-recommendations h4 { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 400; line-height: 1.25; }
 #app-legal-footer { background: transparent; }
 #app-legal-footer > div > div:first-child { flex-wrap: wrap; justify-content: center; }
 #how-it-works-modal-content, #legal-modal-content { max-height: 88dvh; overflow-y: auto; }
 @media(max-width: 800px) {
   .album-main { padding-top: 34px; padding-bottom: 30px; }
+  .photo-uploader > :not(:first-child) { margin-top: 1rem; }
   .album-workspace { grid-template-columns: 1fr; gap: 44px; }
   .photo-uploader { order: -1; }
   .album-example { max-width: 600px; width: 100%; margin: 0 auto; }
-  .upload-heading h1 { font-size: clamp(3.1rem, 12vw, 4rem); }
+  .upload-heading h1 { font-size: clamp(3.1rem, 12vw, 4rem); margin-bottom: 12px; }
   .album-primary { width: 100%; }
+  .album-cta-wrap { display: block; }
   .album-comparison { aspect-ratio: 1.3; }
   .album-photo-frame { transform: none; }
   .brand-name { font-size: 2.1rem; }
@@ -90,4 +101,5 @@ input[type="text"], textarea, select { font-size: 1rem; }
 }
 @media(max-width: 380px) { .album-header #how-it-works-btn svg { display: none; } .brand-camera { width: 34px; height: 34px; } .brand-name { font-size: 1.5rem; } }
 @media(pointer: coarse) { button, summary { min-height: 44px; } }
+@media(pointer: coarse) { .quick-suggestion-chip { min-height: 32px; height: 32px; } }
 @media(prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }

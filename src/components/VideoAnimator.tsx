@@ -32,6 +32,8 @@ import { VideoState, DynamicVideoSuggestion } from "../types";
 import { VIDEO_PRESETS, VideoPreset } from "../videoPresets";
 import { captureVideoFrame, downloadDataUrl, cropImageBase64 } from "../utils/imageExport";
 import { DevMetricsCard } from "./DevMetricsCard";
+import { CompanyAdCard } from "./CompanyAdCard";
+import { DeveloperCoffeeCard } from "./DeveloperCoffeeCard";
 
 export type CropPresetType = "full" | "center" | "left" | "right" | "custom";
 
@@ -71,8 +73,31 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
   });
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const waitingSectionRef = useRef<HTMLDivElement>(null);
+  const videoResultRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
   const pollIntervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia("(max-width: 800px)").matches) return;
+
+    const target = videoState.isGenerating
+      ? waitingSectionRef.current
+      : videoState.videoUrl
+        ? videoResultRef.current
+        : null;
+    if (!target) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timeout = window.setTimeout(() => {
+      target.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    }, videoState.isGenerating ? 500 : 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [videoState.isGenerating, videoState.videoUrl]);
 
   // Clear timers on unmount
   useEffect(() => {
@@ -560,7 +585,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                           key={suggestion.id}
                           type="button"
                           onClick={() => handleSelectDynamicSuggestion(suggestion)}
-                          className={`text-left p-3 rounded-xl border transition-all relative flex flex-col justify-between ${
+                          className={`text-left p-2.5 rounded-xl border transition-all relative flex flex-col justify-between ${
                             isSelected
                               ? "border-teal-700 bg-teal-50/80 text-teal-950 shadow-2xs ring-1 ring-teal-700/20"
                               : "border-stone-200 bg-stone-50/40 hover:bg-white hover:border-stone-300 text-stone-700"
@@ -587,7 +612,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                             )}
                           </div>
 
-                          <p className="text-[13px] text-stone-500 mt-2 leading-snug">
+                          <p className="text-[13px] text-stone-500 mt-1.5 leading-snug">
                             {suggestion.tagline}
                           </p>
                         </button>
@@ -640,7 +665,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                           key={preset.id}
                           type="button"
                           onClick={() => handleSelectPreset(preset)}
-                          className={`text-left p-3 rounded-xl border transition-all relative flex flex-col justify-between ${
+                          className={`text-left p-2.5 rounded-xl border transition-all relative flex flex-col justify-between ${
                             isSelected
                               ? "border-teal-700 bg-teal-50/80 text-teal-950 shadow-2xs ring-1 ring-teal-700/20"
                               : "border-stone-200 bg-stone-50/40 hover:bg-white hover:border-stone-300 text-stone-700"
@@ -667,7 +692,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                             )}
                           </div>
 
-                          <p className="text-[13px] text-stone-500 mt-2 leading-snug">
+                          <p className="text-[13px] text-stone-500 mt-1.5 leading-snug">
                             {preset.tagline}
                           </p>
                         </button>
@@ -878,11 +903,11 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
 
           {/* Action buttons */}
           {!videoState.isGenerating && !videoState.videoUrl && (
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="px-3 py-1.5 text-xs text-stone-500 hover:text-stone-800"
+                className="w-full sm:w-auto px-3 py-2.5 text-xs text-stone-500 hover:text-stone-800 text-center"
               >
                 Peida video aken
               </button>
@@ -890,7 +915,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
               <button
                 type="button"
                 onClick={handleStartGeneration}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white transition-all shadow-2xs"
+                className="btn-forest w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-2xs"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>
@@ -904,22 +929,25 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
 
           {/* Loading state during video generation */}
           {videoState.isGenerating && (
-            <div className="p-6 rounded-xl bg-stone-50 border border-stone-200 text-center space-y-3">
-              <div className="flex justify-center">
-                <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
-              </div>
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-900 text-xs font-mono font-medium">
-                  <Timer className="w-3.5 h-3.5 text-teal-700" />
-                  <span>Kulunud aeg: {videoState.elapsedSeconds}s</span>
+            <div ref={waitingSectionRef} className="scroll-mt-4 space-y-3">
+              <div className="p-5 sm:p-6 rounded-xl bg-stone-50 border border-stone-200 text-center space-y-3">
+                <div className="flex justify-center">
+                  <Loader2 className="w-8 h-8 text-teal-700 animate-spin" />
                 </div>
-                <p className="text-sm font-semibold text-stone-900 pt-1">
-                  {videoState.statusText || "Video loomine käib..."}
-                </p>
-                <p className="text-xs text-stone-500 max-w-md mx-auto">
-                  Tehisintellekt arvutab näoliigutusi ja valgust. Video renderdamine võtab tavaliselt umbes 30–60 sekundit.
-                </p>
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-900 text-xs font-mono font-medium">
+                    <Timer className="w-3.5 h-3.5 text-teal-700" />
+                    <span>Kulunud aeg: {videoState.elapsedSeconds}s</span>
+                  </div>
+                  <p className="text-sm font-semibold text-stone-900 pt-1">
+                    {videoState.statusText || "Video loomine käib..."}
+                  </p>
+                  <p className="text-xs text-stone-500 max-w-md mx-auto">
+                    Tehisintellekt arvutab näoliigutusi ja valgust. Video renderdamine võtab tavaliselt umbes 30–60 sekundit.
+                  </p>
+                </div>
               </div>
+              <CompanyAdCard variant="generating" />
             </div>
           )}
 
@@ -990,7 +1018,7 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
 
           {/* Generated Video Player & Rich Download Choices (Alla laadimine valikud) */}
           {videoState.videoUrl && (
-            <div className="space-y-4 pt-1">
+            <div ref={videoResultRef} className="scroll-mt-4 space-y-4 pt-1">
               {/* Status Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-stone-100">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-xs font-mono font-semibold">
@@ -1100,6 +1128,8 @@ export const VideoAnimator: React.FC<VideoAnimatorProps> = ({
                   compact={true}
                 />
               )}
+
+              <DeveloperCoffeeCard />
             </div>
           )}
         </div>

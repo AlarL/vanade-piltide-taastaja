@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Info, X, ShieldCheck } from "lucide-react";
+import { Info, X, ShieldCheck, Mail } from "lucide-react";
 
 interface HeaderProps {
   onHome?: () => void;
@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ onHome }) => {
         >
           <img src="/camera-logo.png" alt="" className="brand-camera" width="52" height="52" />
           <p className="brand-name">
-            taastavanapilt.ee
+            taasta<span className="brand-accent">vana</span>pilt.ee
           </p>
         </button>
 
@@ -72,15 +72,15 @@ export const Header: React.FC<HeaderProps> = ({ onHome }) => {
           <div
             id="how-it-works-modal-content"
             role="dialog" aria-modal="true" aria-label="Kuidas rakendus töötab?"
-            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 space-y-4 my-auto relative"
+            className="bg-white rounded-2xl w-full max-w-md sm:max-w-lg p-5 sm:p-6 shadow-2xl border border-stone-200 space-y-4 my-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center">
+            <div className="flex items-start justify-between gap-3 border-b border-stone-100 pb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0">
                   <Info className="w-4 h-4 text-teal-800" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-base font-semibold text-stone-900">
                     Kuidas rakendus töötab?
                   </h3>
@@ -92,14 +92,14 @@ export const Header: React.FC<HeaderProps> = ({ onHome }) => {
               <button
                 type="button"
                 onClick={() => setShowInfo(false)}
-                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors shrink-0"
                 title="Sulge aken"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3.5 text-xs sm:text-sm text-stone-600 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
+            <div className="space-y-3.5 text-xs sm:text-sm text-stone-600 leading-relaxed max-h-[60vh] overflow-y-auto overscroll-contain pr-1">
               <p>
                 <strong className="text-stone-900">Eksperimentaalne leht:</strong> Tegemist on tehisintellekti katseprojektiga arhiivifotode taastamiseks ja testimiseks.
               </p>
@@ -115,10 +115,32 @@ export const Header: React.FC<HeaderProps> = ({ onHome }) => {
               <p>
                 <strong className="text-stone-900">Loomulikud värvid:</strong> Mustvalgele või seepiafotole lisatakse pehmed, ajastutruud ja autentsed värvitoonid.
               </p>
-              <div className="p-3.5 bg-teal-50/90 rounded-xl border border-teal-200/80 text-teal-950 flex items-start gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-teal-800 shrink-0 mt-0.5" />
+              <p>
+                <strong className="text-stone-900">Video taastatud fotost:</strong> Taastatud pildist saab teha ka lühikese liikuva video – see võimalus on ajutiselt tasuta proovimiseks avatud.
+              </p>
+              <div className="p-3.5 bg-teal-50/90 rounded-xl border border-teal-200/80 text-teal-950">
+                <p className="flex items-center gap-2 text-xs font-semibold text-teal-950 mb-1.5">
+                  <ShieldCheck className="w-4 h-4 text-teal-800 shrink-0" />
+                  <span>Privaatsus</span>
+                </p>
                 <p className="text-xs leading-relaxed">
-                  <strong className="font-semibold text-teal-950">Privaatsus:</strong> Me ei salvesta pilte ega videoid oma serveritesse ega andmebaasidesse – töötlemine toimub vahemälus ja failid kustuvad koheselt. Taastamiseks saadetakse foto Google&#39;i Gemini API-sse, kus seda töödeldakse ajutiselt ega kasutata mudelite treenimiseks.
+                  Me ei salvesta pilte ega videoid oma serveritesse ega andmebaasidesse – töötlemine toimub vahemälus ja failid kustuvad koheselt. Taastamiseks saadetakse foto API kaudu tehisintellekti mudelile, kus seda töödeldakse ajutiselt ega kasutata mudelite treenimiseks.
+                </p>
+              </div>
+              <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200">
+                <p className="flex items-center gap-2 text-xs font-semibold text-stone-900 mb-1.5">
+                  <Mail className="w-4 h-4 text-teal-800 shrink-0" />
+                  <span>Tahad arendust?</span>
+                </p>
+                <p className="text-xs leading-relaxed text-stone-700">
+                  Kui sul on idee, mida saaks paremini teha, või soovid sarnast lahendust,{" "}
+                  <a
+                    href="mailto:taastavanapilt@gmail.com"
+                    className="font-medium text-teal-800 underline underline-offset-2 hover:text-teal-900"
+                  >
+                    saada e-kiri
+                  </a>
+                  .
                 </p>
               </div>
             </div>

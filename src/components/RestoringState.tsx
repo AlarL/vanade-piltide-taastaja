@@ -56,11 +56,11 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
   return (
     <div
       id="restoring-state-container"
-      className="w-full max-w-lg mx-auto py-4 pb-24 sm:pb-4"
+      className="w-full max-w-lg mx-auto py-2 pb-24 sm:py-3 sm:pb-3"
     >
-      <div className="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 shadow-xs space-y-5 text-center">
+      <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-3.5 text-center">
         {/* Photo processing preview - Clean flat container without gradient */}
-        <div className="relative mx-auto w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs flex items-center justify-center">
+        <div className="relative mx-auto w-32 h-32 sm:w-36 sm:h-36 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs flex items-center justify-center">
           <img
             src={originalImage}
             alt="Töödeldav foto"
@@ -72,9 +72,9 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
 
           {/* Center flat badge in deep Nordic teal */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-xl bg-teal-800 text-white shadow-md flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-teal-800 text-white shadow-md flex items-center justify-center">
               <Wand2
-                className="w-6 h-6 text-teal-200 animate-spin"
+                className="w-5 h-5 text-teal-200 animate-spin"
                 style={{ animationDuration: "6s" }}
               />
             </div>
@@ -82,31 +82,28 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
         </div>
 
         {/* Status text with live timer badge */}
-        <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 font-mono text-xs font-semibold">
-            <Timer className="w-3.5 h-3.5 text-teal-700 animate-pulse" />
-            <span>Kulunud aeg: {formatElapsed(elapsedSeconds)}</span>
-          </div>
-
+        <div className="space-y-1.5">
           <div>
             <h3 className="text-lg font-semibold text-stone-900">
               Foto taastamine...
             </h3>
-            <p className="text-xs text-stone-500 font-normal mt-1">
-              Palun oodake hetk
-            </p>
+            <p className="text-xs text-stone-500 font-normal">Palun oodake hetk</p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 font-mono text-xs font-semibold">
+            <Timer className="w-3.5 h-3.5 text-teal-700 animate-pulse" />
+            <span>Kulunud aeg: {formatElapsed(elapsedSeconds)}</span>
           </div>
         </div>
 
         {/* Step progress list */}
-        <div className="space-y-2 max-w-sm mx-auto text-left pt-1">
+        <div className="space-y-1 max-w-sm mx-auto text-left pt-0.5">
           {STEPS.map((step, idx) => {
             const isDone = idx < currentStepIndex;
             const isCurrent = idx === currentStepIndex;
             return (
               <div
                 key={step}
-                className={`flex items-center gap-2.5 text-xs transition-colors py-0.5 ${
+                className={`flex items-center gap-2 text-xs transition-colors py-px ${
                   isDone
                     ? "text-teal-800 font-medium"
                     : isCurrent
@@ -128,7 +125,7 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
         </div>
 
         {/* Cancel button - Flat styling (mobile uses the sticky bar below) */}
-        <div className="pt-2 hidden sm:block">
+        <div className="pt-0.5 hidden sm:block">
           <button
             type="button"
             onClick={onCancel}

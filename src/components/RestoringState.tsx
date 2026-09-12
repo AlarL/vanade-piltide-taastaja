@@ -57,7 +57,7 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
   return (
     <div
       id="restoring-state-container"
-      className="w-full max-w-2xl mx-auto py-1"
+      className="w-full max-w-[780px] mx-auto py-1"
     >
       <div className="bg-white border border-stone-200 rounded-xl p-3.5 sm:p-4 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4">

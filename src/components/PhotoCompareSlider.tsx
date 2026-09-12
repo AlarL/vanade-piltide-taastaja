@@ -16,7 +16,11 @@ import { DevMetricsCard } from "./DevMetricsCard";
 import { CompanyAdCard } from "./CompanyAdCard";
 import { DeveloperCoffeeCard } from "./DeveloperCoffeeCard";
 import { getFilterById } from "../filters";
-import { downloadDataUrl } from "../utils/imageExport";
+import { DOWNLOAD_OPTION_TEXT } from "../downloadOptions";
+import {
+  createSideBySideComparisonImage,
+  downloadDataUrl,
+} from "../utils/imageExport";
 
 interface PhotoCompareSliderProps {
   result: RestoredPhotoResult;
@@ -32,6 +36,7 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
   const [mode, setMode] = useState<CompareMode>("slider");
   const [isHoldPressed, setIsHoldPressed] = useState<boolean>(false);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -72,14 +77,29 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
     }
   };
 
-  // Download high-resolution restored image directly
-  const handleDownload = () => {
+  const getBaseName = () =>
+    result.fileName
+      ? result.fileName.replace(/\.[^/.]+$/, "")
+      : "foto";
+
+  const handleDownloadRestored = () => {
     const name = result.fileName
       ? `taastatud-${result.fileName.replace(/\.[^/.]+$/, "")}.png`
       : "taastatud-foto.png";
 
     downloadDataUrl(result.restoredImage, name);
+    setIsDownloadMenuOpen(false);
+    setDownloadSuccess(true);
+    setTimeout(() => setDownloadSuccess(false), 2500);
+  };
 
+  const handleDownloadComparison = async () => {
+    const comparisonImage = await createSideBySideComparisonImage(
+      result.originalImage,
+      result.restoredImage
+    );
+    downloadDataUrl(comparisonImage, `enne-ja-parast-${getBaseName()}.jpg`);
+    setIsDownloadMenuOpen(false);
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 2500);
   };
@@ -90,29 +110,58 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
       className="w-full max-w-5xl mx-auto space-y-6"
     >
       {/* Top Controls Bar */}
-      <div className="flex flex-col gap-3 bg-white/80 backdrop-blur-xs border border-stone-200/80 rounded-xl p-3 sm:px-4 sm:py-3 shadow-xs sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div className="relative z-20 flex flex-col gap-3 bg-white/80 backdrop-blur-xs border border-stone-200/80 rounded-xl p-3 sm:px-4 sm:py-3 shadow-xs sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Primary actions - first on mobile, right aligned on desktop */}
         <div className="order-1 flex items-stretch gap-2 sm:order-2">
-          {/* Direct Single Download button */}
-          <button
-            id="download-btn"
-            type="button"
-            onClick={handleDownload}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-teal-800 hover:bg-teal-900 active:bg-teal-950 rounded-lg transition-colors shadow-2xs"
-            title="Laadi taastatud foto alla"
-          >
-            {downloadSuccess ? (
-              <>
-                <Check className="w-4 h-4 text-teal-200 shrink-0" />
-                <span>Alla laaditud!</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4 shrink-0" />
-                <span>Laadi alla</span>
-              </>
+          <div className="relative flex-1 sm:flex-none">
+            <button
+              id="download-btn"
+              type="button"
+              onClick={() => setIsDownloadMenuOpen((isOpen) => !isOpen)}
+              aria-expanded={isDownloadMenuOpen}
+              aria-haspopup="menu"
+              className="flex w-full items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-teal-800 hover:bg-teal-900 active:bg-teal-950 rounded-lg transition-colors shadow-2xs"
+              title="Vali allalaadimise variant"
+            >
+              {downloadSuccess ? (
+                <>
+                  <Check className="w-4 h-4 text-teal-200 shrink-0" />
+                  <span>Alla laaditud!</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span>Laadi alla</span>
+                </>
+              )}
+            </button>
+
+            {isDownloadMenuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-stone-200 bg-white py-1 shadow-lg"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleDownloadRestored}
+                  className="flex w-full items-start gap-2 px-3 py-2.5 text-left text-xs text-stone-700 hover:bg-stone-50"
+                >
+                  <Download className="mt-0.5 w-4 h-4 shrink-0 text-teal-700" />
+                  <span><strong className="block text-stone-900">{DOWNLOAD_OPTION_TEXT.restored.title}</strong>{DOWNLOAD_OPTION_TEXT.restored.description}</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleDownloadComparison}
+                  className="flex w-full items-start gap-2 px-3 py-2.5 text-left text-xs text-stone-700 hover:bg-stone-50"
+                >
+                  <Columns className="mt-0.5 w-4 h-4 shrink-0 text-teal-700" />
+                  <span><strong className="block text-stone-900">{DOWNLOAD_OPTION_TEXT.comparison.title}</strong>{DOWNLOAD_OPTION_TEXT.comparison.description}</span>
+                </button>
+              </div>
             )}
-          </button>
+          </div>
 
           {/* Reset / New photo button */}
           <button

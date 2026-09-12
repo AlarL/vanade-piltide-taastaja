@@ -702,9 +702,6 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
       const approxPromptTokens = Math.round(videoPrompt.length / 4) + 258;
       const pricing = calculateCostEur(usedModel, approxPromptTokens, 0, 5);
 
-      // Record successful video quota consumption
-      consumeQuota(clientId, "video");
-
       const devMetrics = {
         timestamp: new Date().toISOString(),
         formattedTime: new Date().toLocaleTimeString("et-EE", {
@@ -927,6 +924,7 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
   app.post("/api/video-download", async (req, res) => {
     try {
       const { operationName } = req.body;
+      const clientId = getClientKey(req);
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey || !operationName) {
@@ -1012,6 +1010,10 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
       }
 
       const arrayBuffer = await videoRes.arrayBuffer();
+      if (!consumeQuota(clientId, "video")) {
+        res.status(429).json({ error: "Päevane videolimiit on täis." });
+        return;
+      }
       res.setHeader("Content-Type", "video/mp4");
       res.setHeader("Content-Disposition", 'inline; filename="taastatud-video.mp4"');
       res.send(Buffer.from(arrayBuffer));

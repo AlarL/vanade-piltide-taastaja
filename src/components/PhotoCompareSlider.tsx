@@ -5,7 +5,7 @@ import {
   Sliders,
   Columns,
   Eye,
-  Sparkles,
+  Wand2,
   Check,
   Timer,
   Layers,
@@ -399,24 +399,20 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
                 {/* Floating Corner Badges */}
                 <div className="absolute top-3 left-3 pointer-events-none">
                   <span className="px-2.5 py-1 text-[13px] font-medium tracking-wide uppercase bg-stone-900/70 text-white rounded-md backdrop-blur-xs shadow-xs">
-                    Enne (Originaal)
+                    Enne
                   </span>
                 </div>
                 <div className="absolute top-3 right-3 pointer-events-none">
-                  <span className="px-2.5 py-1 text-[13px] font-medium tracking-wide uppercase bg-emerald-950/80 text-emerald-100 rounded-md backdrop-blur-xs shadow-xs flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-emerald-300" />
-                    Pärast (Taastatud)
+                  <span className="px-2.5 py-1 text-[13px] font-medium tracking-wide uppercase bg-emerald-950/80 text-emerald-100 rounded-md backdrop-blur-xs shadow-xs">
+                    Pärast
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Slider Guidance Bar */}
-            <div className="w-full max-w-md mt-4 flex items-center justify-between text-xs text-stone-500 px-2">
+            <div className="w-full max-w-md mt-4 text-center text-xs text-stone-500 px-2">
               <span>Lohista slaiderit vasakule või paremale</span>
-              <span className="font-mono text-stone-700 font-medium">
-                {Math.round(sliderPos)}%
-              </span>
             </div>
           </div>
         )}
@@ -443,7 +439,7 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
             <div className="flex flex-col items-center space-y-2">
               <div className="flex items-center justify-between w-full px-1">
                 <span className="text-xs font-semibold text-teal-800 uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                  <Wand2 className="w-3.5 h-3.5 text-teal-600" />
                   Taastatud & Värvitud
                 </span>
                 <span className="text-[13px] text-teal-700 font-medium">

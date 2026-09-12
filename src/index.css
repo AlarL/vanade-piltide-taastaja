@@ -41,6 +41,7 @@ input[type="text"], textarea, select { font-size: 1rem; }
 .upload-heading h1 { font-family: var(--font-serif); font-size: clamp(3.5rem, 5.5vw, 4.8rem); line-height: 1.02; font-weight: 400; letter-spacing: -.045em; margin-bottom: 20px; }
 .upload-heading h1 em { color: #773f2b; font-weight: 400; }
 .upload-description { color: #655d53; font-size: 1.05rem; line-height: 1.7; max-width: 410px; }
+.upload-settings-intro { font-family: var(--font-serif); font-size: clamp(1.55rem, 2.7vw, 2.05rem); line-height: 1.25; color: #302d29; max-width: 620px; }
 .album-drop-zone { padding: 4px 0 8px; border-radius: 8px; transition: background .15s; }
 .album-drop-zone.is-dragging { background: #efdfd3; outline: 2px dashed #773f2b; outline-offset: 8px; }
 .album-primary { display: inline-flex; align-items: center; justify-content: center; gap: 12px; background: #2f5b45; color: white; border: 1px solid #2f5b45; border-radius: 6px; padding: 16px 24px; font-weight: 500; font-size: 1rem; min-height: 54px; }

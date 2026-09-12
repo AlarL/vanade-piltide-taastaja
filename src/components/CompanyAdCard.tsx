@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, PartyPopper, ExternalLink, Sparkles, Gamepad2 } from "lucide-react";
+import { Users, PartyPopper, ExternalLink, Wand2, Gamepad2 } from "lucide-react";
 
 interface CompanyAdCardProps {
   className?: string;
@@ -54,7 +54,7 @@ export const CompanyAdCard: React.FC<CompanyAdCardProps> = ({
 
         <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-stone-200/80">
           <div className="text-[13px] text-stone-500 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-600" />
+            <Wand2 className="w-3 h-3 text-amber-600" />
             <span>Hetkel täiesti tasuta – testi ja anna tagasisidet!</span>
           </div>
 

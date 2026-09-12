@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Sparkles, CheckCircle2, CircleDashed, X, Timer } from "lucide-react";
-import { CompanyAdCard } from "./CompanyAdCard";
+import React, { useState, useEffect } from "react";
+import { Wand2, CheckCircle2, CircleDashed, X, Timer } from "lucide-react";
 
 interface RestoringStateProps {
   originalImage: string;
@@ -23,21 +22,6 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const waitingSectionRef = useRef<HTMLDivElement>(null);
-
-  // On mobile the page is long, so bring the "while you wait" recommendations into view
-  useEffect(() => {
-    if (!window.matchMedia("(max-width: 639px)").matches) return;
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timeout = setTimeout(() => {
-      waitingSectionRef.current?.scrollIntoView({
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-        block: "start",
-      });
-    }, 600);
-    return () => clearTimeout(timeout);
-  }, []);
-
   // Advance progressive steps to give feedback
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,9 +56,9 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
   return (
     <div
       id="restoring-state-container"
-      className="w-full max-w-xl mx-auto space-y-6 py-4 pb-24 sm:pb-4"
+      className="w-full max-w-lg mx-auto py-4 pb-24 sm:pb-4"
     >
-      <div className="bg-white border border-stone-200 rounded-2xl p-6 md:p-8 shadow-xs space-y-6 text-center">
+      <div className="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 shadow-xs space-y-5 text-center">
         {/* Photo processing preview - Clean flat container without gradient */}
         <div className="relative mx-auto w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs flex items-center justify-center">
           <img
@@ -89,7 +73,7 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
           {/* Center flat badge in deep Nordic teal */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-12 h-12 rounded-xl bg-teal-800 text-white shadow-md flex items-center justify-center">
-              <Sparkles
+              <Wand2
                 className="w-6 h-6 text-teal-200 animate-spin"
                 style={{ animationDuration: "6s" }}
               />
@@ -114,8 +98,8 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
           </div>
         </div>
 
-        {/* Step progress list - Clean flat state */}
-        <div className="space-y-2.5 max-w-sm mx-auto text-left pt-1">
+        {/* Step progress list */}
+        <div className="space-y-2 max-w-sm mx-auto text-left pt-1">
           {STEPS.map((step, idx) => {
             const isDone = idx < currentStepIndex;
             const isCurrent = idx === currentStepIndex;
@@ -154,18 +138,6 @@ export const RestoringState: React.FC<RestoringStateProps> = ({
             <span>Katkesta</span>
           </button>
         </div>
-      </div>
-
-      {/* Recommendations to read while the photo is being restored */}
-      <div ref={waitingSectionRef} className="scroll-mt-4 space-y-3">
-        <div className="sm:hidden flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-stone-200 shadow-2xs">
-          <CircleDashed className="w-4 h-4 text-teal-700 animate-spin shrink-0" />
-          <span className="text-xs text-stone-600 leading-snug">
-            Taastamine käib – kulunud aeg on all ribal. Vaata seniks soovitust.
-          </span>
-        </div>
-
-        <CompanyAdCard variant="generating" />
       </div>
 
       {/* Sticky mobile status bar so the timer and cancel stay reachable while scrolling */}

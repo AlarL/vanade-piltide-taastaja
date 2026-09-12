@@ -19,9 +19,8 @@ export const DeveloperCoffeeCard: React.FC = () => {
               Selle foto taastamine maksis päris raha
             </p>
             <p className="text-xs text-amber-900/90 leading-relaxed max-w-2xl">
-              Arendaja on selle lehe tegemiseks aega ja vaeva näinud, mitte et ta näeb vaeva iga
-              pildi puhul. Kui tulemus meeldis ja soovid, et taastamine jääks ka teistele tasuta,
-              osta talle kohv.
+              Selle pildi uuendamiseks kasutati päriselt tasulist AI-krediiti. Kui tulemus meeldis
+              ja soovid, et taastamine jääks ka teistele tasuta, osta talle kohv.
             </p>
           </div>
         </div>

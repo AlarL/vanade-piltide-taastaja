@@ -647,7 +647,9 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
           ? prompt.trim()
           : "The person in the photo gently blinks their eyes, smiles warmly, and moves their head subtly with natural, smooth, realistic movement.";
 
-      const videoPrompt = rawPrompt.trim();
+      const videoPrompt = `${rawPrompt.trim()}
+
+    No speaking, no dialogue, no lip-sync, and no audible speech. Keep the subject silent and let the motion remain purely visual.`;
 
       console.log(`[Video] Starting Veo video generation (aspectRatio: ${videoAspectRatio})...`);
 

@@ -259,8 +259,8 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
             }`}
           >
             <Eye className="w-3.5 h-3.5 text-teal-700 shrink-0" />
-            <span className="sm:hidden">Hoia</span>
-            <span className="hidden sm:inline">Hoia võrdluseks</span>
+            <span className="sm:hidden">Originaal</span>
+            <span className="hidden sm:inline">Hoia all: näita originaali</span>
           </button>
         </div>
 
@@ -496,14 +496,11 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
             </div>
 
             <p className="text-xs text-stone-500">
-              Vajuta ja hoia pildil all, et näha algset mustvalget versiooni.
+              Vajuta ja hoia pildil, et näha originaalfotot.
             </p>
           </div>
         )}
       </div>
-
-      {/* Developer Coffee Appreciation Card */}
-      <DeveloperCoffeeCard />
 
       {/* Resource & Energy Metrics Breakdown for Photo Restoration */}
       {result.devMetrics && (
@@ -515,9 +512,6 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
         />
       )}
 
-      {/* Prominent Advertisement staying visible after restoration */}
-      <CompanyAdCard variant="result" />
-
       {/* Video Generation Module: Turn this restored photo into lifelike video */}
       <VideoAnimator
         restoredImageUrl={result.restoredImage}
@@ -525,6 +519,12 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
         originalFileName={result.fileName}
         originalAspectRatio={result.originalAspectRatio}
       />
+
+      {/* Developer Coffee Appreciation Card */}
+      <DeveloperCoffeeCard />
+
+      {/* Prominent Advertisement staying visible after restoration */}
+      <CompanyAdCard variant="result" />
     </div>
   );
 };

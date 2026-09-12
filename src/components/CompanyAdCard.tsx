@@ -23,7 +23,7 @@ export const CompanyAdCard: React.FC<CompanyAdCardProps> = ({
         </div>
 
         <span className="text-[13px] font-medium text-stone-500 uppercase tracking-wider">
-          {variant === "generating" ? "Ootamise ajal soovitus" : "Partneri soovitus"}
+          {variant === "generating" ? "Head nõu ootamise ajaks" : "Partneri soovitus"}
         </span>
       </div>
 

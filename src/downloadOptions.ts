@@ -1,10 +1,8 @@
 export const DOWNLOAD_OPTION_TEXT = {
   restored: {
-    title: "Restored photo",
-    description: "Download only the edited image",
+    title: "Taastatud foto",
   },
   comparison: {
-    title: "Original and restored",
-    description: "Download a before-and-after comparison",
+    title: "Originaal ja taastatud",
   },
 } as const;

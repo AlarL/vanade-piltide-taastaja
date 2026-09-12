@@ -139,7 +139,7 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
             {isDownloadMenuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-stone-200 bg-white py-1 shadow-lg"
+                className="absolute left-1/2 top-full z-50 mt-2 w-56 max-w-[calc(100vw-2rem)] -translate-x-1/2 overflow-hidden rounded-lg border border-stone-200 bg-white py-1 shadow-lg"
               >
                 <button
                   type="button"
@@ -148,7 +148,7 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
                   className="flex w-full items-start gap-2 px-3 py-2.5 text-left text-xs text-stone-700 hover:bg-stone-50"
                 >
                   <Download className="mt-0.5 w-4 h-4 shrink-0 text-teal-700" />
-                  <span><strong className="block text-stone-900">{DOWNLOAD_OPTION_TEXT.restored.title}</strong>{DOWNLOAD_OPTION_TEXT.restored.description}</span>
+                  <span className="font-medium text-stone-900">{DOWNLOAD_OPTION_TEXT.restored.title}</span>
                 </button>
                 <button
                   type="button"
@@ -157,7 +157,7 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
                   className="flex w-full items-start gap-2 px-3 py-2.5 text-left text-xs text-stone-700 hover:bg-stone-50"
                 >
                   <Columns className="mt-0.5 w-4 h-4 shrink-0 text-teal-700" />
-                  <span><strong className="block text-stone-900">{DOWNLOAD_OPTION_TEXT.comparison.title}</strong>{DOWNLOAD_OPTION_TEXT.comparison.description}</span>
+                  <span className="font-medium text-stone-900">{DOWNLOAD_OPTION_TEXT.comparison.title}</span>
                 </button>
               </div>
             )}

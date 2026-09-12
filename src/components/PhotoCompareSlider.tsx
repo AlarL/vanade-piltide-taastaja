@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   Download,
   RotateCcw,
@@ -8,9 +8,6 @@ import {
   Wand2,
   Check,
   Timer,
-  Layers,
-  ChevronDown,
-  Loader2,
   Palette,
 } from "lucide-react";
 import { CompareMode, RestoredPhotoResult } from "../types";
@@ -19,7 +16,7 @@ import { DevMetricsCard } from "./DevMetricsCard";
 import { CompanyAdCard } from "./CompanyAdCard";
 import { DeveloperCoffeeCard } from "./DeveloperCoffeeCard";
 import { getFilterById } from "../filters";
-import { createSideBySideComparisonImage, downloadDataUrl } from "../utils/imageExport";
+import { downloadDataUrl } from "../utils/imageExport";
 
 interface PhotoCompareSliderProps {
   result: RestoredPhotoResult;
@@ -35,22 +32,8 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
   const [mode, setMode] = useState<CompareMode>("slider");
   const [isHoldPressed, setIsHoldPressed] = useState<boolean>(false);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
-  const [showDownloadMenu, setShowDownloadMenu] = useState<boolean>(false);
-  const [isExportingSideBySide, setIsExportingSideBySide] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const downloadMenuRef = useRef<HTMLDivElement>(null);
-
-  // Close download menu on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
-        setShowDownloadMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Calculate position from mouse or touch event
   const updatePosition = useCallback((clientX: number) => {
@@ -89,39 +72,16 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
     }
   };
 
-  // Save high-resolution restored image (direct file download)
+  // Download high-resolution restored image directly
   const handleDownload = () => {
     const name = result.fileName
       ? `taastatud-${result.fileName.replace(/\.[^/.]+$/, "")}.png`
       : "taastatud-foto.png";
 
-    setShowDownloadMenu(false);
     downloadDataUrl(result.restoredImage, name);
 
     setDownloadSuccess(true);
     setTimeout(() => setDownloadSuccess(false), 2500);
-  };
-
-  // Save Side-by-Side comparison composite image (direct file download)
-  const handleDownloadSideBySide = async () => {
-    try {
-      setIsExportingSideBySide(true);
-      const compositeUrl = await createSideBySideComparisonImage(
-        result.originalImage,
-        result.restoredImage
-      );
-      const baseName = result.fileName
-        ? result.fileName.replace(/\.[^/.]+$/, "")
-        : "foto";
-      setShowDownloadMenu(false);
-      downloadDataUrl(compositeUrl, `enne-ja-parast-${baseName}.jpg`);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 2500);
-    } catch (err) {
-      console.error("Failed to generate side-by-side export:", err);
-    } finally {
-      setIsExportingSideBySide(false);
-    }
   };
 
   return (
@@ -133,75 +93,26 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
       <div className="flex flex-col gap-3 bg-white/80 backdrop-blur-xs border border-stone-200/80 rounded-xl p-3 sm:px-4 sm:py-3 shadow-xs sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Primary actions - first on mobile, right aligned on desktop */}
         <div className="order-1 flex items-stretch gap-2 sm:order-2">
-          {/* Download button - split dropdown */}
-          <div className="relative flex-1 sm:flex-none" ref={downloadMenuRef}>
-            <div className="flex rounded-lg shadow-2xs">
-              <button
-                id="download-btn"
-                type="button"
-                onClick={handleDownload}
-                className="flex flex-1 items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-white bg-teal-800 hover:bg-teal-900 active:bg-teal-950 rounded-l-lg transition-colors"
-                title="Salvesta taastatud foto"
-              >
-                {downloadSuccess ? (
-                  <>
-                    <Check className="w-4 h-4 text-teal-200 shrink-0" />
-                    <span>Salvestatud!</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 shrink-0" />
-                    <span>Laadi alla</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowDownloadMenu((prev) => !prev)}
-                aria-label="Rohkem allalaadimise valikuid"
-                aria-expanded={showDownloadMenu}
-                className="px-2.5 text-xs text-teal-100 bg-teal-800 hover:bg-teal-900 border-l border-teal-700/60 rounded-r-lg transition-colors"
-                title="Rohkem allalaadimise valikuid"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Dropdown menu */}
-            {showDownloadMenu && (
-              <div className="absolute left-0 right-0 mt-1.5 rounded-xl bg-white border border-stone-200 shadow-lg py-1.5 z-40 sm:left-auto sm:w-64">
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2.5 transition-colors"
-                >
-                  <Download className="w-4 h-4 text-teal-700 shrink-0" />
-                  <div>
-                    <p className="font-semibold text-stone-900">Taastatud foto (PNG)</p>
-                    <p className="text-[13px] text-stone-500">Täisresolutsioonis terav foto</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDownloadSideBySide}
-                  disabled={isExportingSideBySide}
-                  className="w-full text-left px-3.5 py-2.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2.5 transition-colors border-t border-stone-100 disabled:opacity-50"
-                >
-                  {isExportingSideBySide ? (
-                    <Loader2 className="w-4 h-4 text-teal-700 shrink-0 animate-spin" />
-                  ) : (
-                    <Layers className="w-4 h-4 text-teal-700 shrink-0" />
-                  )}
-                  <div>
-                    <p className="font-semibold text-stone-900">Enne ja Pärast võrdluspilt</p>
-                    <p className="text-[13px] text-stone-500">Kõrvuti originaal ja uus foto</p>
-                  </div>
-                </button>
-              </div>
+          {/* Direct Single Download button */}
+          <button
+            id="download-btn"
+            type="button"
+            onClick={handleDownload}
+            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-teal-800 hover:bg-teal-900 active:bg-teal-950 rounded-lg transition-colors shadow-2xs"
+            title="Laadi taastatud foto alla"
+          >
+            {downloadSuccess ? (
+              <>
+                <Check className="w-4 h-4 text-teal-200 shrink-0" />
+                <span>Alla laaditud!</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 shrink-0" />
+                <span>Laadi alla</span>
+              </>
             )}
-          </div>
+          </button>
 
           {/* Reset / New photo button */}
           <button

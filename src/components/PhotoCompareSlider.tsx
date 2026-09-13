@@ -9,6 +9,9 @@ import {
   Check,
   Timer,
   Palette,
+  Info,
+  X,
+  ExternalLink,
 } from "lucide-react";
 import { CompareMode, RestoredPhotoResult } from "../types";
 import { VideoAnimator } from "./VideoAnimator";
@@ -19,7 +22,8 @@ import { getFilterById } from "../filters";
 import { DOWNLOAD_OPTION_TEXT } from "../downloadOptions";
 import {
   createSideBySideComparisonImage,
-  downloadDataUrl,
+  downloadOrShareImage,
+  openInNewTab,
 } from "../utils/imageExport";
 
 interface PhotoCompareSliderProps {
@@ -37,6 +41,8 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
   const [isHoldPressed, setIsHoldPressed] = useState<boolean>(false);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastImageForNewTab, setToastImageForNewTab] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -82,26 +88,41 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
       ? result.fileName.replace(/\.[^/.]+$/, "")
       : "foto";
 
-  const handleDownloadRestored = () => {
+  const handleDownloadRestored = async () => {
     const name = result.fileName
       ? `taastatud-${result.fileName.replace(/\.[^/.]+$/, "")}.png`
       : "taastatud-foto.png";
 
-    downloadDataUrl(result.restoredImage, name);
     setIsDownloadMenuOpen(false);
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 2500);
+    const res = await downloadOrShareImage(result.restoredImage, name, "Taastatud foto");
+    if (res.success) {
+      setDownloadSuccess(true);
+      setToastMessage(res.message);
+      setToastImageForNewTab(result.restoredImage);
+      setTimeout(() => setDownloadSuccess(false), 3000);
+    } else if (res.method !== "canceled") {
+      setToastMessage(res.message || "Allalaadimine ebaõnnestus.");
+      setToastImageForNewTab(result.restoredImage);
+    }
   };
 
   const handleDownloadComparison = async () => {
+    setIsDownloadMenuOpen(false);
     const comparisonImage = await createSideBySideComparisonImage(
       result.originalImage,
       result.restoredImage
     );
-    downloadDataUrl(comparisonImage, `enne-ja-parast-${getBaseName()}.jpg`);
-    setIsDownloadMenuOpen(false);
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 2500);
+    const name = `enne-ja-parast-${getBaseName()}.jpg`;
+    const res = await downloadOrShareImage(comparisonImage, name, "Enne ja pärast taastamist");
+    if (res.success) {
+      setDownloadSuccess(true);
+      setToastMessage(res.message);
+      setToastImageForNewTab(comparisonImage);
+      setTimeout(() => setDownloadSuccess(false), 3000);
+    } else if (res.method !== "canceled") {
+      setToastMessage(res.message || "Allalaadimine ebaõnnestus.");
+      setToastImageForNewTab(comparisonImage);
+    }
   };
 
   return (
@@ -109,6 +130,37 @@ export const PhotoCompareSlider: React.FC<PhotoCompareSliderProps> = ({
       id="photo-compare-workspace"
       className="w-full max-w-5xl mx-auto space-y-6"
     >
+      {/* Android Download / Share Notification Toast */}
+      {toastMessage && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 bg-teal-50 border border-teal-200/90 text-teal-950 rounded-xl text-xs shadow-2xs animate-fadeIn">
+          <div className="flex items-start sm:items-center gap-2">
+            <Info className="w-4 h-4 text-teal-700 shrink-0 mt-0.5 sm:mt-0" />
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            {toastImageForNewTab && (
+              <button
+                type="button"
+                onClick={() => openInNewTab(toastImageForNewTab)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-teal-800 bg-teal-100 hover:bg-teal-200 rounded-lg transition-colors border border-teal-300/60"
+                title="Ava pilt uues aknas ja vajuta pikalt salvestamiseks"
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span>Ava uues aknas</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className="p-1 hover:bg-teal-100 rounded-lg text-teal-700 transition-colors"
+              aria-label="Sulge teavitus"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Controls Bar */}
       <div className="relative z-20 flex flex-col gap-3 bg-white/80 backdrop-blur-xs border border-stone-200/80 rounded-xl p-3 sm:px-4 sm:py-3 shadow-xs sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Primary actions - first on mobile, right aligned on desktop */}

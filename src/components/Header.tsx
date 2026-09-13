@@ -116,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ onHome }) => {
                 <strong className="text-stone-900">Loomulikud värvid:</strong> Mustvalgele või seepiafotole lisatakse pehmed, ajastutruud ja autentsed värvitoonid.
               </p>
               <p>
-                <strong className="text-stone-900">Video taastatud fotost:</strong> Taastatud pildist saab teha ka lühikese liikuva video – see võimalus on ajutiselt tasuta proovimiseks avatud.
+                <strong className="text-stone-900">Video taastatud fotost:</strong> Video genereerimine on hetkel peatatud.
               </p>
               <div className="p-3.5 bg-teal-50/90 rounded-xl border border-teal-200/80 text-teal-950">
                 <p className="flex items-center gap-2 text-xs font-semibold text-teal-950 mb-1.5">

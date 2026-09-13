@@ -15,24 +15,138 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([bytes], { type: mime });
 }
 
-// Helper to trigger a browser file download. Blob URLs are far more reliable on
-// mobile browsers than multi-megabyte data: URLs.
-export function downloadDataUrl(dataUrl: string, filename: string): void {
-  let objectUrl: string | null = null;
-  const link = document.createElement("a");
+export interface ExportResult {
+  success: boolean;
+  method: "share" | "download" | "fallback" | "canceled";
+  message: string;
+}
+
+/**
+ * Robust function to download or natively share an image/file on Android, iOS, and Desktop.
+ * Uses Web Share API when supported on mobile (which triggers Android's native system share/save sheet),
+ * falling back to blob object URL download link with target="_blank" fallback for Android WebViews.
+ */
+export async function downloadOrShareImage(
+  dataUrl: string,
+  filename: string,
+  title?: string
+): Promise<ExportResult> {
+  const blob = dataUrlToBlob(dataUrl);
+  return downloadOrShareBlob(blob, filename, title);
+}
+
+/**
+ * Downloads or natively shares a Blob/File object.
+ */
+export async function downloadOrShareBlob(
+  blob: Blob,
+  filename: string,
+  title?: string
+): Promise<ExportResult> {
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const mimeType = blob.type || "image/png";
+
   try {
-    objectUrl = URL.createObjectURL(dataUrlToBlob(dataUrl));
-    link.href = objectUrl;
-  } catch {
-    link.href = dataUrl;
+    const file = new File([blob], filename, { type: mimeType });
+
+    // 1. Try Web Share API on mobile devices if file sharing is supported
+    if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: title || filename,
+          files: [file],
+        });
+        return {
+          success: true,
+          method: "share",
+          message: "Fail edukalt jagatud / salvestatud seadmesse!",
+        };
+      } catch (err: any) {
+        if (err.name === "AbortError") {
+          return {
+            success: false,
+            method: "canceled",
+            message: "Allalaadimine katkestati.",
+          };
+        }
+        console.warn("Web Share API error, falling back to blob download:", err);
+      }
+    }
+  } catch (err) {
+    console.warn("Could not create File for Web Share:", err);
   }
-  link.download = filename;
-  link.rel = "noopener";
-  link.target = "_self";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl!), 60000);
+
+  // 2. Fallback to Blob object URL download link
+  return triggerBlobDownload(blob, filename, isAndroid);
+}
+
+/**
+ * Triggers a browser file download via Blob URL.
+ */
+export function triggerBlobDownload(blob: Blob, filename: string, isAndroid = false): ExportResult {
+  let objectUrl: string | null = null;
+  try {
+    objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    link.rel = "noopener";
+    
+    // Using target="_blank" helps Android WebViews hand off blob downloads to external browser or system download manager
+    link.target = "_blank";
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (objectUrl) {
+      setTimeout(() => URL.revokeObjectURL(objectUrl!), 60000);
+    }
+
+    return {
+      success: true,
+      method: "download",
+      message: isAndroid
+        ? "Faili allalaadimine käivitus! Vaata teavituste riba või kausta 'Allalaadimised'."
+        : "Fail edukalt alla laaditud!",
+    };
+  } catch (err) {
+    console.error("Blob download failed:", err);
+    return {
+      success: false,
+      method: "fallback",
+      message: "Allalaadimine ebaõnnestus. Proovi uuesti.",
+    };
+  }
+}
+
+/**
+ * Helper to open a data URL or Blob URL directly in a new window/tab
+ * as a fallback for Android WebViews (where long-press save can be used).
+ */
+export function openInNewTab(dataUrlOrBlob: string | Blob): void {
+  let url: string;
+  if (typeof dataUrlOrBlob === "string") {
+    url = dataUrlOrBlob;
+  } else {
+    url = URL.createObjectURL(dataUrlOrBlob);
+  }
+  const win = window.open(url, "_blank");
+  if (!win) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+}
+
+// Helper to trigger a browser file download (kept for backward compatibility).
+export function downloadDataUrl(dataUrl: string, filename: string): void {
+  downloadOrShareImage(dataUrl, filename);
 }
 
 /**

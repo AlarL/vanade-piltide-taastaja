@@ -576,46 +576,27 @@ Vasta AINULT JSON-formaadis järgmise skeemi järgi:
 
   // Step 1: Start Video Generation
   app.post("/api/generate-video", async (req, res) => {
+    // Video genereerimine on ajutiselt peatatud
+    res.status(503).json({
+      error: "Video genereerimine on ajutiselt mõneks päevaks peatatud. Kui tunned huvi ja soovid, et see võimalus oleks saadaval, saada palun e-kiri aadressile taastavanapilt@gmail.com.",
+      isTemporarilyDisabled: true,
+      errorDetails: {
+        statusCode: 503,
+        errorCode: "FEATURE_TEMPORARILY_DISABLED",
+        rawMessage: "Video genereerimine on ajutiselt peatatud.",
+        actionableAdvice: "Saada e-kiri aadressile taastavanapilt@gmail.com oma soovist teada andmiseks.",
+        endpoint: "/api/generate-video",
+      },
+    });
+    return;
+
     const startTime = Date.now();
     try {
       const { imageBase64, mimeType, prompt, apiPrompt, aspectRatio } = req.body;
 
-      // Rate limit check: max 1 video per 24h
-      const clientId = getClientKey(req);
-      const limitStatus = getRateLimitStatus(clientId);
-      if (limitStatus.videosRemaining <= 0) {
-        res.status(429).json({
-          error: `Päevane limiit täis: Iga kasutaja saab teha kuni 1 video ööpäevas, kuna video genereerimine nõuab erakordselt suurt GPU arvutusvõimsust ja elektrit. Sinu limiit vabaneb umbes ${limitStatus.videoResetHours} tunni pärast.`,
-          isRateLimit: true,
-          limitType: "video",
-          resetHours: limitStatus.videoResetHours,
-          errorDetails: {
-            statusCode: 429,
-            errorCode: "DAILY_VIDEO_LIMIT_EXCEEDED",
-            rawMessage: "Kasutaja 24-tunnine videolimiit (1 video) on ammendatud.",
-            actionableAdvice: "Oodake limiidi vabanemist. Video genereerimine tarbib eriti palju energiat.",
-            endpoint: "/api/generate-video",
-          },
-        });
-        return;
-      }
-
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey) {
-        res.status(500).json({
-          error: "GEMINI_API_KEY puudub.",
-          errorDetails: {
-            statusCode: 500,
-            errorCode: "MISSING_API_KEY",
-            rawMessage: "GEMINI_API_KEY puudub serveris.",
-            actionableAdvice: "Sisestage API võti Settings > Secrets menüüs.",
-            endpoint: "/api/generate-video",
-          },
-        });
-        return;
-      }
-      if (!imageBase64) {
         res.status(400).json({
           error: "Pildi andmed puuduvad video tegemiseks.",
           errorDetails: {

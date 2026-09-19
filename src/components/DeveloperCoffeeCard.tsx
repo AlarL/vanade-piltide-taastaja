@@ -1,7 +1,6 @@
 import React from "react";
 import { Coffee } from "lucide-react";
-
-const COFFEE_URL = "https://www.buymeacoffee.com/taastavanapilt";
+import { COFFEE_URL } from "../supportLinks";
 
 export const DeveloperCoffeeCard: React.FC = () => {
   return (

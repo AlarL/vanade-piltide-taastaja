@@ -7,7 +7,8 @@ import { PhotoCompareSlider } from "./components/PhotoCompareSlider";
 import { AlternativeServicesBanner } from "./components/AlternativeServicesBanner";
 import { LegalFooter } from "./components/LegalFooter";
 import { RestoredPhotoResult, RestorationFilterId, ApiErrorDetails, FaceReferencePhoto } from "./types";
-import { AlertCircle, RefreshCw, KeyRound, ShieldAlert } from "lucide-react";
+import { AlertCircle, RefreshCw, KeyRound, ShieldAlert, Coffee } from "lucide-react";
+import { COFFEE_URL } from "./supportLinks";
 import { DevMetricsCard } from "./components/DevMetricsCard";
 
 interface QuotaStatus {
@@ -163,7 +164,9 @@ export default function App() {
       const data = await response.json();
 
       if (!response.ok || !data.success || !data.restoredImage) {
-        if (data.isRateLimit || response.status === 429) {
+        if (data.isCreditExhausted) {
+          setIsQuotaError(true);
+        } else if (data.isRateLimit || response.status === 429) {
           if (data.isRateLimit || data.errorCode === "DAILY_LIMIT_EXCEEDED") {
             setIsRateLimitError(true);
           } else {
@@ -280,6 +283,8 @@ export default function App() {
               <div className="p-2 rounded-xl bg-amber-100 text-amber-900 shrink-0 mt-0.5">
                 {isRateLimitError ? (
                   <ShieldAlert className="w-4 h-4 text-amber-800" />
+                ) : isQuotaError ? (
+                  <Coffee className="w-4 h-4 text-amber-800" />
                 ) : (
                   <AlertCircle className="w-4 h-4 text-amber-800" />
                 )}
@@ -289,15 +294,24 @@ export default function App() {
                   {isRateLimitError
                     ? "Päevane kasutuslimiit on saavutatud"
                     : isQuotaError
-                    ? "Teenus pole praegu saadaval"
+                    ? "Tundub, et krediit sai otsa"
                     : "Päringut ei saanud lõpule viia"}
                 </p>
-                <p className="leading-relaxed text-stone-700">{isQuotaError ? "Foto töötlemine on ajutiselt peatatud." : error}</p>
+                <p className="leading-relaxed text-stone-700">
+                  {isQuotaError
+                    ? "Tundub, et AI-krediit on hetkel otsas – ja et ammu pole keegi arendajale kohvi ostnud."
+                    : error}
+                </p>
 
-                {isQuotaError && <p className="text-sm text-stone-600">Teenuse kasutusmaht on ajutiselt täis. Palun proovi hiljem uuesti.</p>}
+                {isQuotaError && (
+                  <p className="text-sm text-stone-600">
+                    Oota natuke ja proovi hiljem uuesti – või osta üks kohv, et fotode taastamine
+                    saaks kohe edasi minna.
+                  </p>
+                )}
 
-                {/* Diagnostics and pricing breakdown */}
-                {apiErrorDetails && (
+                {/* Diagnostics and pricing breakdown - never for the credit notice */}
+                {apiErrorDetails && !isQuotaError && (
                   <details className="mt-2">
                     <summary className="cursor-pointer text-sm">Tehnilised üksikasjad</summary>
                     <DevMetricsCard
@@ -307,7 +321,19 @@ export default function App() {
                   </details>
                 )}
 
-                <div className="pt-2 flex items-center gap-3">
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  {isQuotaError && (
+                    <a
+                      id="credit-coffee-btn"
+                      href={COFFEE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bmc-button"
+                    >
+                      <span aria-hidden="true">☕</span>
+                      <span>Osta üks kohv</span>
+                    </a>
+                  )}
                   {!isRateLimitError && (
                     <button
                       type="button"
@@ -315,7 +341,7 @@ export default function App() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-medium transition-colors text-xs"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Proovi uuesti</span>
+                      <span>{isQuotaError ? "Proovi hiljem uuesti" : "Proovi uuesti"}</span>
                     </button>
                   )}
                   <button

@@ -511,12 +511,16 @@ async function startServer() {
       console.error("[Restore] Error processing request:", error);
       const errorDetails = parseApiError(error, "/api/restore-photo");
 
+      // Running out of AI credit is the owner's problem, not the visitor's: the billing
+      // advice stays in the server log and the browser only learns that credit ran out.
+      const isCreditExhausted = errorDetails.errorCode === "RESOURCE_EXHAUSTED";
+
       res.status(errorDetails.statusCode >= 400 && errorDetails.statusCode < 600 ? errorDetails.statusCode : 500).json({
-        error:
-          errorDetails.errorCode === "RESOURCE_EXHAUSTED"
-            ? "Pilditöötluse tehisintellekt nõuab arveldusega (Pay-as-you-go) API võtit. Tasuta paketis on limiit 0."
-            : errorDetails.rawMessage || "Viga foto taastamisel. Palun kontrollige pilti ja proovige uuesti.",
-        errorDetails,
+        error: isCreditExhausted
+          ? "Tundub, et AI-krediit on hetkel otsas."
+          : errorDetails.rawMessage || "Viga foto taastamisel. Palun kontrollige pilti ja proovige uuesti.",
+        isCreditExhausted,
+        errorDetails: isCreditExhausted ? undefined : errorDetails,
       });
     }
   });

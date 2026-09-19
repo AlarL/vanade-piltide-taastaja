@@ -10,6 +10,18 @@ export interface RestorationFilter {
   promptAddon: string;
 }
 
+/**
+ * Optional present-day photo of the same person, cropped to the face in the browser
+ * and used only as an identity reference for the restoration.
+ */
+export interface FaceReferencePhoto {
+  /** Square JPEG data URL, already downscaled client-side. */
+  base64: string;
+  mimeType: string;
+  /** Approximate upload size, shown to the user so the cost stays visible. */
+  bytes: number;
+}
+
 export interface DevMetrics {
   timestamp: string;
   formattedTime: string;

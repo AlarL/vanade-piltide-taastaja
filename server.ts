@@ -3,7 +3,11 @@ import path from "path";
 import dotenv from "dotenv";
 import { GoogleGenAI, GenerateVideosOperation } from "@google/genai";
 import { createServer as createViteServer } from "vite";
-import { DEFAULT_RESTORATION_PROMPT } from "./src/restorationPrompt";
+import {
+  DEFAULT_RESTORATION_PROMPT,
+  FACE_REFERENCE_IMAGE_LABELS,
+  FACE_REFERENCE_PROMPT_ADDON,
+} from "./src/restorationPrompt";
 import { getFilterById } from "./src/filters";
 
 dotenv.config();
@@ -96,6 +100,9 @@ async function startServer() {
   app.get("/api/rate-limit-status", (req, res) => {
     const clientId = getClientKey(req);
     const status = getRateLimitStatus(clientId);
+    // Mobile browsers and proxies happily cache a plain GET, which makes the quota look
+    // frozen and hides the real remaining count.
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
     res.json(status);
   });
 
@@ -227,11 +234,55 @@ async function startServer() {
     }
   }
 
+  // The optional identity reference photo arrives from the browser already cropped to the
+  // face and downscaled. Everything below is a sanity bound on client input: an oversized,
+  // malformed or non-image payload is ignored instead of being forwarded to the model.
+  const REFERENCE_MAX_BASE64_CHARS = 4_000_000; // ~3 MB; a 768 px face crop is ~0.2 MB
+  const ALLOWED_REFERENCE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+  function parseReferenceImage(
+    rawBase64: unknown,
+    rawMimeType: unknown
+  ): { data: string; mimeType: string } | null {
+    if (typeof rawBase64 !== "string" || rawBase64.trim().length < 100) return null;
+
+    const dataUrlMatch = rawBase64.match(/^data:(image\/[a-z0-9+.-]+);base64,/i);
+    const data = rawBase64.replace(/^data:image\/[a-z0-9+.-]+;base64,/i, "").trim();
+
+    if (data.length === 0 || data.length > REFERENCE_MAX_BASE64_CHARS) {
+      console.warn("[Restore] Ignoring reference photo: payload missing or too large.");
+      return null;
+    }
+    if (!/^[A-Za-z0-9+/=\s]+$/.test(data)) {
+      console.warn("[Restore] Ignoring reference photo: payload is not base64.");
+      return null;
+    }
+
+    const declared = typeof rawMimeType === "string" ? rawMimeType.toLowerCase().trim() : "";
+    const detected = dataUrlMatch ? dataUrlMatch[1].toLowerCase() : "";
+    const mimeType = ALLOWED_REFERENCE_MIME_TYPES.includes(declared)
+      ? declared
+      : ALLOWED_REFERENCE_MIME_TYPES.includes(detected)
+      ? detected
+      : "image/jpeg";
+
+    return { data, mimeType };
+  }
+
   // Photo Restoration API (supports both /api/restore-photo and /api/generate-photo)
   app.post(["/api/restore-photo", "/api/generate-photo"], async (req, res) => {
     const startTime = Date.now();
     try {
-      const { imageBase64, mimeType, customPrompt, aspectRatio, filterId, userNote } = req.body;
+      const {
+        imageBase64,
+        mimeType,
+        customPrompt,
+        aspectRatio,
+        filterId,
+        userNote,
+        referenceImageBase64,
+        referenceMimeType,
+      } = req.body;
 
       // Rate limit check: max 5 photos per 24h
       const clientId = getClientKey(req);
@@ -315,11 +366,33 @@ async function startServer() {
         prompt = `${prompt}\n\n[USER SPECIFIC NOTES & COLOR WISHES - HIGHEST PRIORITY]:\n${trimmedNote}`;
       }
 
+      // Optional second image: a present-day photo of the same person, already cropped to
+      // the face and downscaled in the browser. It guides identity only - never age or era.
+      const referencePhoto = parseReferenceImage(referenceImageBase64, referenceMimeType);
+      if (referencePhoto) {
+        prompt = `${prompt}\n\n${FACE_REFERENCE_PROMPT_ADDON}`;
+      }
+
       const allowedAspectRatios = ["1:1", "3:4", "4:3", "9:16", "16:9"];
       const targetAspectRatio = allowedAspectRatios.includes(aspectRatio) ? aspectRatio : "1:1";
 
+      // With a reference photo each image gets its own label part, so the model cannot
+      // confuse which one it must restore. Without one the single-image shape is untouched.
+      const requestParts = referencePhoto
+        ? [
+            { text: FACE_REFERENCE_IMAGE_LABELS.source },
+            { inlineData: { data: cleanBase64, mimeType: detectedMime } },
+            { text: FACE_REFERENCE_IMAGE_LABELS.reference },
+            { inlineData: { data: referencePhoto.data, mimeType: referencePhoto.mimeType } },
+            { text: prompt },
+          ]
+        : [
+            { inlineData: { data: cleanBase64, mimeType: detectedMime } },
+            { text: prompt },
+          ];
+
       console.log(
-        `[Restore] Processing photo with filter "${activeFilter.label}" (aspectRatio: ${targetAspectRatio})...`
+        `[Restore] Processing photo with filter "${activeFilter.label}" (aspectRatio: ${targetAspectRatio}, faceReference: ${referencePhoto ? "yes" : "no"})...`
       );
 
       let response;
@@ -329,17 +402,7 @@ async function startServer() {
         response = await ai.models.generateContent({
           model: "gemini-3.1-flash-image",
           contents: {
-            parts: [
-              {
-                inlineData: {
-                  data: cleanBase64,
-                  mimeType: detectedMime,
-                },
-              },
-              {
-                text: prompt,
-              },
-            ],
+            parts: requestParts,
           },
           config: {
             imageConfig: {
@@ -366,17 +429,7 @@ async function startServer() {
         response = await ai.models.generateContent({
           model: "gemini-2.5-flash-image",
           contents: {
-            parts: [
-              {
-                inlineData: {
-                  data: cleanBase64,
-                  mimeType: detectedMime,
-                },
-              },
-              {
-                text: prompt,
-              },
-            ],
+            parts: requestParts,
           },
         });
       }
@@ -449,6 +502,7 @@ async function startServer() {
         restoredImage: restoredImageBase64,
         notes: modelNotes,
         appliedFilter: activeFilter.id,
+        usedFaceReference: Boolean(referencePhoto),
         userNote: userNote && typeof userNote === "string" ? userNote.trim() : undefined,
         durationMs,
         devMetrics,

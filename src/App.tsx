@@ -6,7 +6,7 @@ import { RestoringState } from "./components/RestoringState";
 import { PhotoCompareSlider } from "./components/PhotoCompareSlider";
 import { AlternativeServicesBanner } from "./components/AlternativeServicesBanner";
 import { LegalFooter } from "./components/LegalFooter";
-import { RestoredPhotoResult, RestorationFilterId, ApiErrorDetails } from "./types";
+import { RestoredPhotoResult, RestorationFilterId, ApiErrorDetails, FaceReferencePhoto } from "./types";
 import { AlertCircle, RefreshCw, KeyRound, ShieldAlert } from "lucide-react";
 import { DevMetricsCard } from "./components/DevMetricsCard";
 
@@ -19,6 +19,11 @@ interface QuotaStatus {
   videoResetHours: number;
 }
 
+const REQUEST_TIMEOUT_MS = 4 * 60 * 1000;
+
+// Kept in module scope so a browser with blocked storage still reports one stable id per tab
+let fallbackClientId: string | null = null;
+
 function getOrCreateClientId(): string {
   try {
     let id = localStorage.getItem("vf_client_id");
@@ -28,7 +33,10 @@ function getOrCreateClientId(): string {
     }
     return id;
   } catch {
-    return "client_fallback_" + Date.now();
+    if (!fallbackClientId) {
+      fallbackClientId = "client_fallback_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+    }
+    return fallbackClientId;
   }
 }
 
@@ -49,6 +57,8 @@ export default function App() {
 
   const [activeUserNote, setActiveUserNote] = useState<string | undefined>(undefined);
   const [activeFilterId, setActiveFilterId] = useState<RestorationFilterId>("modern_hd");
+  // Kept so "Proovi uuesti" resends the same identity reference photo
+  const [activeFaceReference, setActiveFaceReference] = useState<FaceReferencePhoto | null>(null);
   const [quota, setQuota] = useState<QuotaStatus | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -70,6 +80,7 @@ export default function App() {
       const clientId = getOrCreateClientId();
       const res = await fetch("/api/rate-limit-status", {
         headers: { "x-client-id": clientId },
+        cache: "no-store",
       });
       if (res.ok) {
         const data = await res.json();
@@ -95,7 +106,8 @@ export default function App() {
     base64: string,
     info?: { name: string; type: string; aspectRatio: string },
     filterId?: RestorationFilterId,
-    userNote?: string
+    userNote?: string,
+    faceReference?: FaceReferencePhoto | null
   ) => {
     setOriginalImage(base64);
     const chosenInfo = info || {
@@ -106,6 +118,7 @@ export default function App() {
     setFileInfo(chosenInfo);
     setActiveFilterId(filterId || "modern_hd");
     setActiveUserNote(userNote);
+    setActiveFaceReference(faceReference || null);
     setError(null);
     setApiErrorDetails(null);
     setIsQuotaError(false);
@@ -120,6 +133,9 @@ export default function App() {
     }
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+    // Without a ceiling a stalled mobile connection leaves isLoading true forever and the
+    // upload screen never comes back.
+    const timeoutId = window.setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS);
 
     try {
       const clientId = getOrCreateClientId();
@@ -129,12 +145,17 @@ export default function App() {
           "Content-Type": "application/json",
           "x-client-id": clientId,
         },
+        cache: "no-store",
         body: JSON.stringify({
           imageBase64: base64,
           mimeType: chosenInfo.type,
           aspectRatio: chosenInfo.aspectRatio,
           filterId: filterId || "modern_hd",
           userNote: userNote?.trim() || undefined,
+          // Optional present-day photo of the same person, already cropped and
+          // downscaled in the browser so it stays a cheap single image input
+          referenceImageBase64: faceReference?.base64 || undefined,
+          referenceMimeType: faceReference?.mimeType || undefined,
         }),
         signal: abortController.signal,
       });
@@ -175,7 +196,11 @@ export default function App() {
       fetchQuota();
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Restoration cancelled by user.");
+        // A superseded request - the newer one owns the UI state now
+        if (abortControllerRef.current !== abortController) return;
+        setError(
+          "Päring võttis liiga kaua aega ja katkestati. Palun proovi uuesti – võimalusel nõrgema võrgu korral väiksema fotoga."
+        );
         return;
       }
       console.error("Error during restoration:", err);
@@ -194,13 +219,18 @@ export default function App() {
           "Foto taastamisel tekkis tõrge. Palun veenduge, et foto on selge ning proovige uuesti."
       );
     } finally {
-      setIsLoading(false);
+      window.clearTimeout(timeoutId);
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
   const handleCancel = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
     setIsLoading(false);
     setStartTime(null);
@@ -222,12 +252,13 @@ export default function App() {
     setIsLoading(false);
     setStartTime(null);
     setActiveUserNote(undefined);
+    setActiveFaceReference(null);
     fetchQuota();
   };
 
   const handleRetry = () => {
     if (originalImage && fileInfo) {
-      handleImageSelected(originalImage, fileInfo, activeFilterId, activeUserNote);
+      handleImageSelected(originalImage, fileInfo, activeFilterId, activeUserNote, activeFaceReference);
     }
   };
 

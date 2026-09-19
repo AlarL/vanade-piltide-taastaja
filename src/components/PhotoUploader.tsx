@@ -15,16 +15,29 @@ import {
   ShieldCheck,
   Zap,
   ChevronDown,
+  UserRound,
+  ImagePlus,
+  Trash2,
+  Pencil,
 } from "lucide-react";
-import { RestorationFilterId } from "../types";
+import { FaceReferencePhoto, RestorationFilterId } from "../types";
 import { RESTORATION_FILTERS } from "../filters";
+import { FaceReferenceCropper } from "./FaceReferenceCropper";
+import {
+  estimateDataUrlBytes,
+  formatKilobytes,
+  prepareReferenceSource,
+  REFERENCE_MIME_TYPE,
+  REFERENCE_OUTPUT_SIZE,
+} from "../utils/faceReference";
 
 interface PhotoUploaderProps {
   onImageSelected: (
     base64: string,
     fileInfo?: { name: string; type: string; aspectRatio: string },
     filterId?: RestorationFilterId,
-    userNote?: string
+    userNote?: string,
+    faceReference?: FaceReferencePhoto | null
   ) => void;
   isLoading: boolean;
   /** Rendered right under the intro text - used for the mobile layout */
@@ -40,6 +53,7 @@ interface PhotoUploaderProps {
 }
 
 const MAX_NOTE_LENGTH = 120;
+const MAX_IMAGE_DIMENSION = 2400;
 
 const QUICK_SUGGESTIONS = [
   "Kleit helesinine",
@@ -65,7 +79,23 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     info: { name: string; type: string; aspectRatio: string };
   } | null>(null);
 
+  // Optional present-day photo of the same person, used only as an identity reference
+  const [faceReference, setFaceReference] = useState<FaceReferencePhoto | null>(null);
+  // Working copy of the picked photo, kept so the crop can be adjusted again later
+  const [referenceSource, setReferenceSource] = useState<string | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const [referenceError, setReferenceError] = useState<string | null>(null);
+  const [isPreparingReference, setIsPreparingReference] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const referenceCameraInputRef = useRef<HTMLInputElement>(null);
+  const referenceGalleryInputRef = useRef<HTMLInputElement>(null);
+
+  // Only phones and tablets get the "take a photo" shortcut; on a desktop the capture
+  // attribute is ignored and the button would just open a second file dialog.
+  const [hasCamera] = useState<boolean>(
+    () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches
+  );
 
   useEffect(() => {
     if (!uploadedImage || !window.matchMedia("(max-width: 800px)").matches) return;
@@ -92,6 +122,27 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     return "16:9";
   };
 
+  // Large phone photos are downscaled before they ever reach state - repeatedly holding
+  // multi-megapixel base64 strings is what makes mobile browsers quietly run out of memory.
+  const downscaleToBase64 = (img: HTMLImageElement, fallback: string): string => {
+    const largestSide = Math.max(img.naturalWidth, img.naturalHeight);
+    if (largestSide <= MAX_IMAGE_DIMENSION) return fallback;
+
+    try {
+      const scale = MAX_IMAGE_DIMENSION / largestSide;
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return fallback;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const resized = canvas.toDataURL("image/jpeg", 0.92);
+      return resized.length > 100 ? resized : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const processFile = (file: File) => {
     setErrorMsg(null);
 
@@ -107,10 +158,16 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       return;
     }
 
+    // Drop the previous photo first so the old base64 can be freed before the next one is read
+    setUploadedImage(null);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64 = e.target?.result as string;
-      if (!base64) return;
+      if (!base64) {
+        setErrorMsg("Foto lugemine ebaõnnestus. Palun proovi uuesti või vali väiksem fail.");
+        return;
+      }
 
       const img = new Image();
       img.onload = () => {
@@ -118,26 +175,26 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
           img.naturalWidth,
           img.naturalHeight
         );
+        const optimized = downscaleToBase64(img, base64);
         setUploadedImage({
-          base64,
+          base64: optimized,
           info: {
             name: file.name,
-            type: file.type,
+            type: optimized === base64 ? file.type : "image/jpeg",
             aspectRatio: detectedAspect,
           },
         });
       };
       img.onerror = () => {
-        setUploadedImage({
-          base64,
-          info: {
-            name: file.name,
-            type: file.type,
-            aspectRatio: "1:1",
-          },
-        });
+        setErrorMsg("Seda fotot ei õnnestunud avada. Palun proovi mõnda teist pilti.");
       };
       img.src = base64;
+    };
+    reader.onerror = () => {
+      setErrorMsg("Foto lugemine ebaõnnestus. Palun proovi uuesti või vali väiksem fail.");
+    };
+    reader.onabort = () => {
+      setErrorMsg("Foto lugemine katkes. Palun proovi uuesti.");
     };
     reader.readAsDataURL(file);
   };
@@ -165,6 +222,53 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     if (e.target.files && e.target.files.length > 0) {
       processFile(e.target.files[0]);
     }
+    // Clearing the value is what lets the user pick the SAME file again - otherwise no
+    // change event fires on the second pick and the button looks dead.
+    e.target.value = "";
+  };
+
+  // The reference photo is decoded and shrunk before the crop step, so a 12 MP camera
+  // shot never sits in state at full size.
+  const handleReferenceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setReferenceError(null);
+    setIsPreparingReference(true);
+    try {
+      const prepared = await prepareReferenceSource(file);
+      setReferenceSource(prepared.src);
+      setFaceReference(null);
+      setIsCropping(true);
+    } catch (err: any) {
+      setReferenceError(err?.message || "Foto lugemine ebaõnnestus. Palun proovi uuesti.");
+    } finally {
+      setIsPreparingReference(false);
+    }
+  };
+
+  const handleReferenceConfirm = (croppedDataUrl: string) => {
+    setFaceReference({
+      base64: croppedDataUrl,
+      mimeType: REFERENCE_MIME_TYPE,
+      bytes: estimateDataUrlBytes(croppedDataUrl),
+    });
+    setIsCropping(false);
+    setReferenceError(null);
+  };
+
+  // Leaving the crop view without a confirmed face means there is no reference at all
+  const handleReferenceCropCancel = () => {
+    setIsCropping(false);
+    if (!faceReference) setReferenceSource(null);
+  };
+
+  const handleReferenceRemove = () => {
+    setFaceReference(null);
+    setReferenceSource(null);
+    setIsCropping(false);
+    setReferenceError(null);
   };
 
   const handleStartRestoration = () => {
@@ -173,7 +277,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       uploadedImage.base64,
       uploadedImage.info,
       selectedFilter,
-      shortNote.trim() || undefined
+      shortNote.trim() || undefined,
+      faceReference
     );
   };
 
@@ -198,6 +303,27 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
         type="file"
         accept="image/jpeg,image/png,image/webp,image/tiff"
         onChange={handleFileChange}
+        className="hidden"
+        disabled={isLoading}
+      />
+
+      {/* Reference photo pickers: the native camera on phones, the gallery everywhere */}
+      <input
+        id="face-reference-camera-input"
+        ref={referenceCameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="user"
+        onChange={handleReferenceFileChange}
+        className="hidden"
+        disabled={isLoading}
+      />
+      <input
+        id="face-reference-gallery-input"
+        ref={referenceGalleryInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleReferenceFileChange}
         className="hidden"
         disabled={isLoading}
       />
@@ -361,6 +487,103 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
             </div>
           </div>
 
+          {/* Modern reference photo - optional, keeps the restored face recognisable */}
+          <div className="space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
+              <label className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                <UserRound className="w-4 h-4 text-teal-700" />
+                <span>3. TÄNAPÄEVANE FOTO (valikuline)</span>
+              </label>
+            </div>
+
+            <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-3.5 space-y-3">
+              {isCropping && referenceSource ? (
+                <FaceReferenceCropper
+                  imageSrc={referenceSource}
+                  onConfirm={handleReferenceConfirm}
+                  onCancel={handleReferenceCropCancel}
+                />
+              ) : faceReference ? (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={faceReference.base64}
+                    alt="Tänapäevane näofoto"
+                    className="face-reference-thumb"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-stone-900">Näofoto lisatud</p>
+                    <p className="text-[13px] text-stone-500">
+                      Mudel ühtlustab näojooni selle järgi · {REFERENCE_OUTPUT_SIZE}×{REFERENCE_OUTPUT_SIZE} px ·{" "}
+                      {formatKilobytes(faceReference.bytes)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsCropping(true)}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-stone-700 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/80 rounded-lg transition-colors"
+                      title="Kohanda kärbet"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      <span className="hidden sm:inline">Kohanda</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleReferenceRemove}
+                      className="inline-flex items-center justify-center p-2 text-stone-500 hover:text-stone-900 rounded-lg transition-colors"
+                      title="Eemalda näofoto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="sr-only">Eemalda näofoto</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[13px] text-stone-600 leading-relaxed">
+                    Kardad, et taastatud pilt pole päris sinu nägu? Lisa sama inimese tänapäevane foto.
+                    Mudel võtab sealt ainult püsivad näojooned – silmavärvi, silmakuju, näokuju. Foto ajastu,
+                    riided ja vanus jäävad originaalilt: lapsele ei panda täiskasvanu nägu.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {hasCamera && (
+                      <button
+                        type="button"
+                        onClick={() => referenceCameraInputRef.current?.click()}
+                        disabled={isPreparingReference}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white btn-forest rounded-lg transition-colors disabled:opacity-60"
+                      >
+                        <Camera className="w-4 h-4" />
+                        <span>Tee pilt</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => referenceGalleryInputRef.current?.click()}
+                      disabled={isPreparingReference}
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-stone-700 hover:text-stone-900 bg-white border border-stone-200 hover:bg-stone-50 rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      <ImagePlus className="w-4 h-4" />
+                      <span>{hasCamera ? "Vali galeriist" : "Vali foto"}</span>
+                    </button>
+                    {isPreparingReference && (
+                      <span className="text-[13px] text-stone-500">Foto avaneb…</span>
+                    )}
+                  </div>
+                  <p className="text-[13px] text-stone-400 leading-relaxed">
+                    Foto vähendatakse ja kärbitakse sinu seadmes – serverisse läheb ainult väike näoruut.
+                  </p>
+                </>
+              )}
+
+              {referenceError && (
+                <p role="alert" className="album-error">
+                  {referenceError}
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Short Note / Lisainfo - collapsed by default, it is purely optional */}
           <div className="rounded-xl border border-stone-200 bg-stone-50/60">
             <button
@@ -374,7 +597,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
                 <Palette className="w-4 h-4 text-teal-700 shrink-0" />
                 <span className="min-w-0">
                   <span className="block text-sm font-bold text-stone-900">
-                    3. LISASEADED (valikuline)
+                    4. LISASEADED (valikuline)
                   </span>
                   <span className="block text-[13px] text-stone-500 truncate">
                     {shortNote.trim() ? `„${shortNote.trim()}“` : "Lisa värvisoov või lühike märkus"}
@@ -445,7 +668,10 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
             <button
               type="button"
-              onClick={() => setUploadedImage(null)}
+              onClick={() => {
+                setUploadedImage(null);
+                handleReferenceRemove();
+              }}
               className="order-2 w-full sm:order-1 sm:w-auto px-4 py-2 text-xs font-medium text-stone-500 hover:text-stone-800 transition-colors text-center"
             >
               Tühista
